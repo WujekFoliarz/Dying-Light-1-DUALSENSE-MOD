@@ -10,4 +10,4 @@ How to use:
 
 Please report any bugs or weapons that don't create trigger resistance
 # DSX 2V IS REQUIRED! https://store.steampowered.com/app/1812620/DSX/
-# .NET 8.0.0 IS REQUIRED! https://dotnet.microsoft.com/en-us/download/dotnet/8.0
+# .NET 8.0 IS REQUIRED! https://dotnet.microsoft.com/en-us/download/dotnet/8.0
