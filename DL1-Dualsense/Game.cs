@@ -1,4 +1,4 @@
-﻿using Swed64;
+using Swed64;
 
 namespace DL1_Dualsense
 {
@@ -22,11 +22,21 @@ namespace DL1_Dualsense
 
         public bool isUVOn()
         {
+            // I was unable to find a consistant UV Flashlight pointer that works 100% of the time.
+            // I'll just have to do it this way, for now at least
+
             IntPtr moduleBase = swed.GetModuleBase("gamedll_x64_rwdi.dll");
             short uv1 = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01D0E8E0, 0x410, 0x48, 0x1A8) + 0x54);
             short uv2 = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01C399E0, 0x18, 0x1A8) + 0x54);
+            short uv3 = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01C15308, 0x390, 0x118, 0x38, 0xDE0, 0x2E0) + 0x54);
+
             if (uv1 == 0 && uv2 == 0)
-                return false;
+            {
+                if (uv3 == 1)
+                    return true;
+                else
+                    return false;
+            }
             else
                 return true;
         }
@@ -36,7 +46,8 @@ namespace DL1_Dualsense
             IntPtr moduleBase = swed.GetModuleBase("gamedll_x64_rwdi.dll");
             short uv1 = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01D0E8E0, 0x410, 0x48, 0x1A8) + 0x54);
             short uv2 = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01C399E0, 0x18, 0x1A8) + 0x54);
-            if (uv1 == 256 || uv2 == 256)
+            short uv3 = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01C15308, 0x390, 0x118, 0x38, 0xDE0, 0x2E0) + 0x54);
+            if (uv1 == 256 || uv2 == 256 || uv3 == 256)
                 return true;
             else
                 return false;
