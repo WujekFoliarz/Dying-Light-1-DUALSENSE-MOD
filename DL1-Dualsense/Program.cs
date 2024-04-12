@@ -1,4 +1,4 @@
-﻿using DL1_Dualsense;
+using DL1_Dualsense;
 using System.Diagnostics;
 
 internal class Program
@@ -24,8 +24,9 @@ internal class Program
 
         Trigger whichTrigger;
         TriggerMode triggerMode = TriggerMode.Normal;
-        int triggerThreshold = 100;
-        int weapon;
+        int triggerThreshold = 120;
+        int weapon = 0;
+        int lastWeapon = 0;
         int start = 0;
         int end = 0;
         int force = 0;
@@ -61,7 +62,10 @@ internal class Program
                     else if (hp < 75 && hp != 0) { R = 255; G = 0; B = 0; }
                     else { R = 0; G = 0; B = 0; }
 
+                    lastWeapon = weapon;
                     weapon = game.getWeaponType();
+                    
+                    Console.WriteLine(weapon);
                     whichTrigger = Trigger.Right;
                     if (weapon == 2058 || weapon >= 2024 && weapon <= 2029) // 1H sharp weapon (machete etc.)
                     {
@@ -77,7 +81,7 @@ internal class Program
                         force = 8;
                         triggerMode = TriggerMode.Rigid;
                     }
-                    else if (weapon == 886) // Crossbow
+                    else if (weapon == 886 || weapon == 850) // Crossbow
                     {
                         start = 2;
                         end = 6;
@@ -105,14 +109,14 @@ internal class Program
                         force = 8;
                         triggerMode = TriggerMode.Medium;
                     }
-                    else if (weapon == 830) // chainsaw
+                    else if (weapon == 830) // Chainsaw
                     {
                         start = 6;
                         end = 8;
                         force = 20;
                         triggerMode = TriggerMode.AutomaticGun;
                     }
-                    else if (weapon == 1282 || weapon == 1246) // Automatic rifle
+                    else if (weapon == 1282 || weapon == 1246 && lastWeapon != 1283) // Automatic rifle
                     {
                         start = 4;
                         end = 8;
@@ -125,6 +129,13 @@ internal class Program
                         end = 8;
                         force = 12;
                         triggerMode = TriggerMode.AutomaticGun;
+                    }
+                    else if (weapon == 2170 || weapon == 2080) // Submachine gun (EMPTY)
+                    {
+                        start = 8;
+                        end = 8;
+                        force = 8;
+                        triggerMode = TriggerMode.SemiAutomaticGun;
                     }
                     else if (weapon != 757 && weapon >= 734 && weapon <= 759) // Bows
                     {
@@ -140,7 +151,7 @@ internal class Program
                         force = 8;
                         triggerMode = TriggerMode.SemiAutomaticGun;
                     }
-                    else if (weapon == 1283) // Automatic rifle (EMPTY)
+                    else if (weapon == 1283 || weapon == 1246) // Automatic rifle (EMPTY)
                     {
                         start = 3;
                         end = 8;
