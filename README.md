@@ -5,7 +5,7 @@
 
 How to use:
 - Launch DL1-Dualsense.exe
-- Launch DSX
+- Launch DSX (Turn on XBOX 360 controller emulation for vibrations, to get playstation buttons download the button replacement mod.)
 - Launch Dying Light
 
 Please report any bugs or weapons that don't create trigger resistance
