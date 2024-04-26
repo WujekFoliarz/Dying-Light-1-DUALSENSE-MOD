@@ -1,20 +1,14 @@
-using DL1_Dualsense;
+﻿using DL1_Dualsense;
 using System.Diagnostics;
 
 internal class Program
 {
     private static Game game = new Game();
-    private static DSX DSX = new DSX();
+    private static DualsenseControllerAPI controllerAPI = new DualsenseControllerAPI();
     private static void Main(string[] args)
     {
         bool gameRunning = true;
-        // Lightbar color (0-255)
-        int R = 0;
-        int G = 0;
-        int B = 0;
-
-        // Chase level (0-4)
-        int chase = 0;
+        bool apiRunning = false;
 
         // Microphone status
         bool micLed;
@@ -22,204 +16,209 @@ internal class Program
         // Player's health
         float hp = 0;
 
-        Trigger whichTrigger;
-        TriggerMode triggerMode = TriggerMode.Normal;
-        int triggerThreshold = 120;
         int weapon = 0;
         int lastWeapon = 0;
-        int start = 0;
-        int end = 0;
-        int force = 0;
 
-        DSX.Connect();
         Console.WriteLine("The program is running.");
-        while (true)
-        {
-            Process[] process = Process.GetProcessesByName("DyingLightGame");
-            if (process.Length == 0)
-            {
-                gameRunning = false;
-                Console.WriteLine("Dying Light is not running... \n");
-                Thread.Sleep(1000);
-                Console.Clear();
-            }
-            else
-            {
-                if (!gameRunning) { game = new Game(); }
-
-                try
-                {
-                    if (game.isMicrophoneOn())
-                        micLed = false;
-                    else
-                        micLed = true;
-
-                    chase = game.getChaseLevel();
-                    hp = game.getHP();
-
-                    if (hp >= 175) { R = 0; G = 255; B = 0; }
-                    else if (hp < 175 && hp > 75) { R = 255; G = 255; B = 0; }
-                    else if (hp < 75 && hp != 0) { R = 255; G = 0; B = 0; }
-                    else { R = 0; G = 0; B = 0; }
-
-                    lastWeapon = weapon;
-                    weapon = game.getWeaponType();
-                    
-                    Console.WriteLine(weapon);
-                    whichTrigger = Trigger.Right;
-                    if (weapon == 2058 || weapon >= 2024 && weapon <= 2029) // 1H sharp weapon (machete etc.)
-                    {
-                        start = 0;
-                        end = 0;
-                        force = 8;
-                        triggerMode = TriggerMode.Choppy;
-                    }
-                    else if (weapon == 1974 || weapon >= 1940 && weapon <= 1960) // 2H weapon
-                    {
-                        start = 0;
-                        end = 0;
-                        force = 8;
-                        triggerMode = TriggerMode.Rigid;
-                    }
-                    else if (weapon == 886 || weapon == 850) // Crossbow
-                    {
-                        start = 2;
-                        end = 6;
-                        force = 8;
-                        triggerMode = TriggerMode.SemiAutomaticGun;
-                    }
-                    else if (weapon == 1897 || weapon >= 1861 && weapon <= 1897) // 1H blunt weapon (baseball bat etc.)
-                    {
-                        start = 4;
-                        end = 7;
-                        force = 2;
-                        triggerMode = TriggerMode.Medium;
-                    }
-                    else if (weapon == 1184 || weapon >= 1152 && weapon <= 1165) // Knifes
-                    {
-                        start = 4;
-                        end = 7;
-                        force = 2;
-                        triggerMode = TriggerMode.Choppy;
-                    }
-                    else if (weapon <= 949 && weapon >= 933) // Fists
-                    {
-                        start = 3;
-                        end = 8;
-                        force = 8;
-                        triggerMode = TriggerMode.Medium;
-                    }
-                    else if (weapon == 830) // Chainsaw
-                    {
-                        start = 6;
-                        end = 8;
-                        force = 20;
-                        triggerMode = TriggerMode.AutomaticGun;
-                    }
-                    else if (weapon == 1282 || weapon == 1246 && lastWeapon != 1283) // Automatic rifle
-                    {
-                        start = 4;
-                        end = 8;
-                        force = 10;
-                        triggerMode = TriggerMode.AutomaticGun;
-                    }
-                    else if (weapon == 2169 || weapon == 2079) // Submachine gun
-                    {
-                        start = 8;
-                        end = 8;
-                        force = 12;
-                        triggerMode = TriggerMode.AutomaticGun;
-                    }
-                    else if (weapon == 2170 || weapon == 2080) // Submachine gun (EMPTY)
-                    {
-                        start = 8;
-                        end = 8;
-                        force = 8;
-                        triggerMode = TriggerMode.SemiAutomaticGun;
-                    }
-                    else if (weapon != 757 && weapon >= 734 && weapon <= 759) // Bows
-                    {
-                        start = 8;
-                        end = 8;
-                        force = 12;
-                        triggerMode = TriggerMode.Bow;
-                    }
-                    else if (weapon == 1715 || weapon == 1690) // Shotguns
-                    {
-                        start = 3;
-                        end = 8;
-                        force = 8;
-                        triggerMode = TriggerMode.SemiAutomaticGun;
-                    }
-                    else if (weapon == 1283 || weapon == 1246) // Automatic rifle (EMPTY)
-                    {
-                        start = 3;
-                        end = 8;
-                        force = 8;
-                        triggerMode = TriggerMode.SemiAutomaticGun;
-                    }
-                    else if (weapon == 1589 || weapon == 1562) // Double-Action Revolver
-                    {
-                        start = 3;
-                        end = 8;
-                        force = 8;
-                        triggerMode = TriggerMode.SemiAutomaticGun;
-                    }
-                    else if (weapon == 1811 || weapon == 1783) // Single-Action Revolver
-                    {
-                        start = 3;
-                        end = 8;
-                        force = 8;
-                        triggerMode = TriggerMode.SemiAutomaticGun;
-                    }
-                    else if (weapon == 703 || weapon == 667) // Pistol
-                    {
-                        start = 3;
-                        end = 6;
-                        force = 8;
-                        triggerMode = TriggerMode.SemiAutomaticGun;
-                    }
-                    else
-                    {
-                        triggerMode = TriggerMode.Normal;
-                    }
-
-                    // Change RGB colors to white
-                    if (game.isFlashlightOn())
-                    {
-                        R = 255; G = 255; B = 255;
-                    }
-
-                    // Change RGB colors to purple
-                    if (game.isUVOn())
-                    {
-                        R = 60; G = 0; B = 255;
-                        DSX.Update(R, G, B, chase, micLed, whichTrigger, triggerMode, triggerThreshold, start, end, force);
-                    }
-
-                    if (game.isUVRecharging())
-                    {
-                        Thread.Sleep(100);
-                        R = 60; G = 0; B = 255;
-                        DSX.Update(R, G, B, chase, micLed, whichTrigger, triggerMode, triggerThreshold, start, end, force);
-                        Thread.Sleep(100);
-                        R = 255; G = 0; B = 0;
-                        DSX.Update(R, G, B, chase, micLed, whichTrigger, triggerMode, triggerThreshold, start, end, force);
-                    }
-
-                    // Update left trigger here
-
-                    DSX.Update(R, G, B, chase, micLed, whichTrigger, triggerMode, triggerThreshold, start, end, force);
-
-                    Thread.Sleep(250);
-                }
-                catch(InvalidOperationException)
+        new Thread(() => {
+            Thread.CurrentThread.Priority = ThreadPriority.Lowest;
+            Thread.CurrentThread.IsBackground = true;
+            while (true)
+            {               
+                Process[] process = Process.GetProcessesByName("DyingLightGame");
+                if (process.Length == 0)
                 {
                     gameRunning = false;
+                    Console.WriteLine("Dying Light is not running... \n");
+                    Thread.Sleep(1000);
+                    Console.Clear();
                 }
+                else
+                {
+                    if (!gameRunning) { game = new Game(); }
+                    if (!apiRunning) { controllerAPI.Start(); apiRunning = true; }
 
-               
+                    try
+                    {
+                        if (game.isMicrophoneOn())
+                            controllerAPI.microphoneLED = false;
+                        else
+                            controllerAPI.microphoneLED = true;
+
+                        switch (game.getChaseLevel())
+                        {
+                            case 1:
+                                controllerAPI.playerLED = PlayerID.PLAYER_1;
+                                break;
+                            case 2:
+                                controllerAPI.playerLED = PlayerID.PLAYER_2;
+                                break;
+                            case 3:
+                                controllerAPI.playerLED = PlayerID.PLAYER_3;
+                                break;
+                            case 4:
+                                controllerAPI.playerLED = PlayerID.PLAYER_4;
+                                break;
+                            default:
+                                controllerAPI.playerLED = 0;
+                                break;
+                        }
+
+                        hp = game.getHP();
+                        if (hp >= 175) { controllerAPI.R = 0; controllerAPI.G = 255; controllerAPI.B = 0; }
+                        else if (hp < 175 && hp > 75) { controllerAPI.R = 255; controllerAPI.G = 255; controllerAPI.B = 0; }
+                        else if (hp < 75 && hp != 0) { controllerAPI.R = 255; controllerAPI.G = 255; controllerAPI.B = 0; }
+                        else { controllerAPI.R = 0; controllerAPI.G = 0; controllerAPI.B = 0; }
+
+                        lastWeapon = weapon;
+                        weapon = game.getWeaponType();
+
+                        //Console.WriteLine(weapon);
+                        if (weapon == 2058 || weapon >= 2024 && weapon <= 2029) // 1H sharp weapon (machete etc.)
+                        {
+                            controllerAPI.triggerThreshold = 120;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid_A;
+                            controllerAPI.rightTriggerForces = [20, 255, 0, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 1974 || weapon >= 1940 && weapon <= 1960) // 2H weapon
+                        {
+                            controllerAPI.triggerThreshold = 120;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid;
+                            controllerAPI.rightTriggerForces = [0, 255, 0, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 886 || weapon == 850) // Crossbow
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid_A;
+                            controllerAPI.rightTriggerForces = [55, 0, 75, 40, 90, 255, 0];
+                        }
+                        else if (weapon == 1897 || weapon >= 1861 && weapon <= 1897) // 1H blunt weapon (baseball bat etc.)
+                        {
+                            controllerAPI.triggerThreshold = 120;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid_A;
+                            controllerAPI.rightTriggerForces = [70, 170, 120, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 1184 || weapon >= 1152 && weapon <= 1165) // Knifes
+                        {
+                            controllerAPI.triggerThreshold = 120;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid_A;
+                            controllerAPI.rightTriggerForces = [20, 1, 20, 0, 0, 0, 0];
+                        }
+                        else if (weapon <= 949 && weapon >= 933) // Fists
+                        {
+                            controllerAPI.triggerThreshold = 120;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid_A;
+                            controllerAPI.rightTriggerForces = [1, 1, 0, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 830) // Chainsaw
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Pulse_B;
+                            controllerAPI.rightTriggerForces = [35, 137, 65, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 1282 && lastWeapon != 1283 || weapon == 1246) // Automatic rifle
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Pulse_B;
+                            controllerAPI.rightTriggerForces = [10, 255, 120, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 1283) // Automatic rifle (EMPTY)
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Pulse_AB;
+                            controllerAPI.rightTriggerForces = [120, 0, 255, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 2169 || weapon == 2079) // Submachine gun
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Pulse_B;
+                            controllerAPI.rightTriggerForces = [15, 255, 120, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 2170 || weapon == 2080) // Submachine gun (EMPTY)
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Pulse_AB;
+                            controllerAPI.rightTriggerForces = [120, 0, 255, 0, 0, 0, 0];
+                        }
+                        else if (weapon != 757 && weapon >= 734 && weapon <= 759) // Bows
+                        {
+                            controllerAPI.triggerThreshold = 80;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid;
+                            controllerAPI.rightTriggerForces = [0, 255, 0, 255, 255, 255, 0];
+                        }
+                        else if (weapon == 1715 || weapon == 1690) // Shotguns
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Pulse_AB;
+                            controllerAPI.rightTriggerForces = [10, 75, 82, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 1715 || weapon == 1690) // Double-barrel shotgun
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Pulse_AB;
+                            controllerAPI.rightTriggerForces = [255, 0, 255, 0, 0, 0, 0];
+                        }
+                        else if (weapon == 1589 || weapon == 1562) // Double-Action Revolver
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid_AB;
+                            controllerAPI.rightTriggerForces = [255, 184, 255, 143, 71, 0, 0];
+                        }
+                        else if (weapon == 1811 || weapon == 1783 || weapon == 1812) // Single-Action Revolver
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid_AB;
+                            controllerAPI.rightTriggerForces = [93, 184, 255, 143, 71, 0, 0];
+                        }
+                        else if (weapon == 703 || weapon == 667 || weapon == 704) // Pistol
+                        {
+                            controllerAPI.triggerThreshold = 255;
+                            controllerAPI.rightTriggerMode = TriggerModes.Rigid_AB;
+                            controllerAPI.rightTriggerForces = [93, 184, 255, 143, 71, 0, 0];
+                        }
+                        else
+                        {
+                            controllerAPI.triggerThreshold = 0;
+                            controllerAPI.rightTriggerMode = TriggerModes.Off;
+                            controllerAPI.rightTriggerForces = [0,0,0,0,0,0,0];
+                        }
+
+                        // Change RGB colors to white
+                        if (game.isFlashlightOn())
+                        {
+                            controllerAPI.R = 255;
+                            controllerAPI.G = 255;
+                            controllerAPI.B = 255;
+                        }
+
+                        // Change RGB colors to purple
+                        if (game.isUVOn())
+                        {
+                            controllerAPI.R = 60;
+                            controllerAPI.G = 0;
+                            controllerAPI.B = 255;
+                        }
+
+                        if (game.isUVRecharging())
+                        {
+                            controllerAPI.R = 60;
+                            controllerAPI.G = 0;
+                            controllerAPI.B = 255;
+                            Thread.Sleep(250);
+                            controllerAPI.R = 255;
+                            controllerAPI.G = 0;
+                            controllerAPI.B = 0;
+                        }
+
+                        Thread.Sleep(250);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        gameRunning = false;
+                    }
+                }
             }
-        }
+        }).Start();
+        Console.ReadKey();
     }
 }
