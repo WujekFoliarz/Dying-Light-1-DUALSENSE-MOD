@@ -1,5 +1,7 @@
 ﻿using DL1_Dualsense;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Timers;
 
 internal class Program
 {
@@ -18,13 +20,10 @@ internal class Program
 
         int weapon = 0;
         int lastWeapon = 0;
-
-        Console.WriteLine("The program is running.");
-        new Thread(() => {
-            Thread.CurrentThread.Priority = ThreadPriority.Lowest;
-            Thread.CurrentThread.IsBackground = true;
+        Stopwatch watch = new Stopwatch();
+            int uvAnimationCycle = 0;
             while (true)
-            {               
+            {
                 Process[] process = Process.GetProcessesByName("DyingLightGame");
                 if (process.Length == 0)
                 {
@@ -36,7 +35,17 @@ internal class Program
                 else
                 {
                     if (!gameRunning) { game = new Game(); }
-                    if (!apiRunning) { controllerAPI.Start(); apiRunning = true; }
+                    if (!apiRunning) {
+                        controllerAPI.Start();
+                        new Thread(() => {
+                            Thread.CurrentThread.IsBackground = true;
+                            Thread.CurrentThread.Priority = ThreadPriority.Highest;
+                            while (true){
+                                controllerAPI.emulatedControllerRefresh();
+                            }
+                        }).Start();
+                        apiRunning = true; 
+                    }
 
                     try
                     {
@@ -65,11 +74,6 @@ internal class Program
                         }
 
                         hp = game.getHP();
-                        if (hp >= 175) { controllerAPI.R = 0; controllerAPI.G = 255; controllerAPI.B = 0; }
-                        else if (hp < 175 && hp > 75) { controllerAPI.R = 255; controllerAPI.G = 255; controllerAPI.B = 0; }
-                        else if (hp < 75 && hp != 0) { controllerAPI.R = 255; controllerAPI.G = 255; controllerAPI.B = 0; }
-                        else { controllerAPI.R = 0; controllerAPI.G = 0; controllerAPI.B = 0; }
-
                         lastWeapon = weapon;
                         weapon = game.getWeaponType();
 
@@ -183,42 +187,54 @@ internal class Program
                             controllerAPI.rightTriggerForces = [0,0,0,0,0,0,0];
                         }
 
+                        if (game.isUVRecharging())
+                        {
+                            if (uvAnimationCycle <= 0)
+                            {
+                                controllerAPI.R = 60;
+                                controllerAPI.G = 0;
+                                controllerAPI.B = 255;
+                                uvAnimationCycle++;
+                            }
+                            else if (uvAnimationCycle <= 1)
+                            {
+                                controllerAPI.R = 255;
+                                controllerAPI.G = 0;
+                                controllerAPI.B = 0;
+                                uvAnimationCycle++;
+                            }
+                            else
+                            {
+                                uvAnimationCycle = 0;
+                            }
+                        }
+                        // Change RGB colors to purple
+                        else if (game.isUVOn())
+                        {
+                            controllerAPI.R = 60;
+                            controllerAPI.G = 0;
+                            controllerAPI.B = 255;
+                        }
                         // Change RGB colors to white
-                        if (game.isFlashlightOn())
+                        else if (game.isFlashlightOn())
                         {
                             controllerAPI.R = 255;
                             controllerAPI.G = 255;
                             controllerAPI.B = 255;
                         }
-
-                        // Change RGB colors to purple
-                        if (game.isUVOn())
-                        {
-                            controllerAPI.R = 60;
-                            controllerAPI.G = 0;
-                            controllerAPI.B = 255;
-                        }
-
-                        if (game.isUVRecharging())
-                        {
-                            controllerAPI.R = 60;
-                            controllerAPI.G = 0;
-                            controllerAPI.B = 255;
-                            Thread.Sleep(250);
-                            controllerAPI.R = 255;
-                            controllerAPI.G = 0;
-                            controllerAPI.B = 0;
-                        }
-
-                        Thread.Sleep(250);
+                        // Change RGB colors according to HP
+                        else if (hp >= 175) { controllerAPI.R = 0; controllerAPI.G = 255; controllerAPI.B = 0; }
+                        else if (hp < 175 && hp > 75) { controllerAPI.R = 255; controllerAPI.G = 255; controllerAPI.B = 0; }
+                        else if (hp < 75 && hp != 0) { controllerAPI.R = 255; controllerAPI.G = 255; controllerAPI.B = 0; }
+                        else { controllerAPI.R = 0; controllerAPI.G = 0; controllerAPI.B = 0; }
                     }
                     catch (InvalidOperationException)
                     {
                         gameRunning = false;
                     }
                 }
+                Thread.Sleep(500);
             }
-        }).Start();
         Console.ReadKey();
     }
 }

@@ -3,6 +3,7 @@ using Nefarius.ViGEm.Client;
 using Nefarius.ViGEm.Client.Targets.DualShock4;
 using Nefarius.ViGEm.Client.Targets;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
+using System.Diagnostics;
 
 namespace DL1_Dualsense
 {
@@ -14,6 +15,7 @@ namespace DL1_Dualsense
         public int r_rotor;
         private int reportLength;
         private ConnectionType connectionType;
+        private int offset = 0;
         private IXbox360Controller xbox360Controller;
         private IDualShock4Controller dualshock4;
         private DeviceInfo dualsenseInfo;
@@ -55,101 +57,154 @@ namespace DL1_Dualsense
                 xbox360Controller.Connect();
 
             dualshock4.FeedbackReceived += Dualshock4_FeedbackReceived;
-            
-
-            new Thread(() =>
-            {
-                Thread.CurrentThread.IsBackground = false;
-                Thread.CurrentThread.Priority = ThreadPriority.Highest;
-                while (true)
-                {
-                    try
-                    {
-                        int micLed = microphoneLED ? 1 : 0;
-                        dualsense.Write(PrepareReport(R, G, B, leftTriggerMode, rightTriggerMode, leftTriggerForces, rightTriggerForces, playerLED, brightness, micLed));
-                    }
-                    catch (HidException)
-                    {
-                        Console.WriteLine("Connection to DUALSENSE was interrupted.");
-                        break;
-                    }
-
-                    ReadInput();
-
-                    // Emulate DUALSHOCK 4
-                    if (!xbox360ControllerEmulation)
-                    {
-                        dualshock4.SetButtonState(DualShock4Button.Cross, state.cross);
-                        dualshock4.SetButtonState(DualShock4Button.Circle, state.circle);
-                        dualshock4.SetButtonState(DualShock4Button.Triangle, state.triangle);
-                        dualshock4.SetButtonState(DualShock4Button.Square, state.square);
-
-                        DualShock4DPadDirection direction = DualShock4DPadDirection.None;
-                        if (state.DpadDown) { direction = DualShock4DPadDirection.South; }
-                        else if (state.DpadUp) { direction = DualShock4DPadDirection.North; }
-                        else if (state.DpadLeft) { direction = DualShock4DPadDirection.West; }
-                        else if (state.DpadRight) { direction = DualShock4DPadDirection.East; }
-                        dualshock4.SetDPadDirection(direction);
-
-                        dualshock4.SetAxisValue(DualShock4Axis.LeftThumbX, (byte)state.LX);
-                        dualshock4.SetAxisValue(DualShock4Axis.LeftThumbY, (byte)state.LY);
-                        dualshock4.SetAxisValue(DualShock4Axis.RightThumbX, (byte)state.RX);
-                        dualshock4.SetAxisValue(DualShock4Axis.RightThumbY, (byte)state.RY);
-                        dualshock4.SetButtonState(DualShock4Button.ThumbLeft, state.L3);
-                        dualshock4.SetButtonState(DualShock4Button.ThumbRight, state.R3);
-
-                        if ((byte)state.L2 >= triggerThreshold)
-                            dualshock4.LeftTrigger = (byte)state.L2;
-                        else
-                            dualshock4.LeftTrigger = (byte)0;
-
-                        if ((byte)state.R2 >= triggerThreshold)
-                            dualshock4.RightTrigger = (byte)state.R2;
-                        else
-                            dualshock4.RightTrigger = (byte)0;
-
-                        dualshock4.SetButtonState(DualShock4SpecialButton.Touchpad, state.touchBtn);
-                        dualshock4.SetButtonState(DualShock4Button.Share, state.share);
-                        dualshock4.SetButtonState(DualShock4Button.Options, state.options);
-                        dualshock4.SetButtonState(DualShock4Button.ShoulderLeft, state.L1);
-                        dualshock4.SetButtonState(DualShock4Button.ShoulderRight, state.R1);
-                        dualshock4.SetButtonState(DualShock4SpecialButton.Ps, state.ps);
-                    }
-                    else // Emulate XBOX 360 Controller
-                    {
-                        xbox360Controller.SetButtonState(Xbox360Button.A, state.cross);
-                        xbox360Controller.SetButtonState(Xbox360Button.B, state.circle);
-                        xbox360Controller.SetButtonState(Xbox360Button.Y, state.triangle);
-                        xbox360Controller.SetButtonState(Xbox360Button.X, state.square);
-
-                        xbox360Controller.SetButtonState(Xbox360Button.Up, state.DpadUp);
-                        xbox360Controller.SetButtonState(Xbox360Button.Left, state.DpadLeft);
-                        xbox360Controller.SetButtonState(Xbox360Button.Right, state.DpadRight);
-                        xbox360Controller.SetButtonState(Xbox360Button.Down, state.DpadDown);
-
-                        //-32767 minimum
-                        //32766 max
-                        xbox360Controller.SetAxisValue(Xbox360Axis.LeftThumbX, (short)ConvertRange(state.LX, 0, 255, -32767, 32766));
-                        xbox360Controller.SetAxisValue(Xbox360Axis.LeftThumbY, (short)ConvertRange(state.LY, 255, 0, -32767, 32766));
-                        xbox360Controller.SetAxisValue(Xbox360Axis.RightThumbX, (short)ConvertRange(state.RX, 0, 255, -32767, 32766));
-                        xbox360Controller.SetAxisValue(Xbox360Axis.RightThumbY, (short)ConvertRange(state.RY, 255, 0, -32767, 32766));
-                        xbox360Controller.SetButtonState(Xbox360Button.LeftThumb, state.L3);
-                        xbox360Controller.SetButtonState(Xbox360Button.RightThumb, state.R3);
-
-                        xbox360Controller.LeftTrigger = (byte)state.L2;
-                        xbox360Controller.RightTrigger = (byte)state.R2;
-
-                        xbox360Controller.SetButtonState(Xbox360Button.Start, state.options);
-                        xbox360Controller.SetButtonState(Xbox360Button.Back, state.share);
-                        xbox360Controller.SetButtonState(Xbox360Button.LeftShoulder, state.L1);
-                        xbox360Controller.SetButtonState(Xbox360Button.RightShoulder, state.R1);
-                        xbox360Controller.SetButtonState(Xbox360Button.Guide, state.ps);
-                    }
-                }
-            }).Start();
+            xbox360Controller.FeedbackReceived += Xbox360Controller_FeedbackReceived1;
         }
 
-        private void Xbox360Controller_FeedbackReceived(object sender, Xbox360FeedbackReceivedEventArgs e)
+        public void emulatedControllerRefresh()
+        {
+            try
+            {
+                int micLed = microphoneLED ? 1 : 0;
+                dualsense.Write(PrepareReport(R, G, B, leftTriggerMode, rightTriggerMode, leftTriggerForces, rightTriggerForces, playerLED, brightness, micLed));
+            }
+            catch (HidException)
+            {
+                Console.WriteLine("Connection to DUALSENSE was interrupted.");
+            }
+
+            ReadOnlySpan<byte> output = dualsense.Read(reportLength);
+            byte[] states = output.ToArray();
+            if (connectionType == ConnectionType.BT) { offset = 1; }
+
+            // states 0 is always 1
+            state.LX = states[1 + offset];
+            state.LY = states[2 + offset];
+            state.RX = states[3 + offset];
+            state.RY = states[4 + offset];
+            state.L2 = states[5 + offset];
+            state.R2 = states[6 + offset];
+
+            // state 7 always increments -> not used anywhere
+
+            byte buttonState = states[8 + offset];
+            state.triangle = (buttonState & (1 << 7)) != 0;
+            state.circle = (buttonState & (1 << 6)) != 0;
+            state.cross = (buttonState & (1 << 5)) != 0;
+            state.square = (buttonState & (1 << 4)) != 0;
+
+            // dpad
+            byte dpad_state = (byte)(buttonState & 0x0F);
+            state.SetDPadState(dpad_state);
+
+            byte misc = states[9 + offset];
+            state.R3 = (misc & (1 << 7)) != 0;
+            state.L3 = (misc & (1 << 6)) != 0;
+            state.options = (misc & (1 << 5)) != 0;
+            state.share = (misc & (1 << 4)) != 0;
+            state.R2Btn = (misc & (1 << 3)) != 0;
+            state.L2Btn = (misc & (1 << 2)) != 0;
+            state.R1 = (misc & (1 << 1)) != 0;
+            state.L1 = (misc & (1 << 0)) != 0;
+
+            byte misc2 = states[10 + offset];
+            state.ps = (misc2 & (1 << 0)) != 0;
+            state.touchBtn = (misc2 & 0x02) != 0;
+            state.micBtn = (misc2 & 0x04) != 0;
+
+            // trackpad touch
+            state.trackPadTouch0.ID = (byte)(states[33 + offset] & 0x7F);
+            state.trackPadTouch0.IsActive = (states[33 + offset] & 0x80) == 0;
+            state.trackPadTouch0.X = ((states[35 + offset] & 0x0F) << 8) | states[34];
+            state.trackPadTouch0.Y = ((states[36 + offset]) << 4) | ((states[35] & 0xF0) >> 4);
+
+            // trackpad touch
+            state.trackPadTouch1.ID = (byte)(states[37 + offset] & 0x7F);
+            state.trackPadTouch1.IsActive = (states[37 + offset] & 0x80) == 0;
+            state.trackPadTouch1.X = ((states[39 + offset] & 0x0F) << 8) | states[38];
+            state.trackPadTouch1.Y = ((states[40 + offset]) << 4) | ((states[39] & 0xF0) >> 4);
+
+            // accelerometer
+            state.accelerometer.X = BitConverter.ToInt16(new byte[] { states[16 + offset], states[17 + offset] }, 0);
+            state.accelerometer.Y = BitConverter.ToInt16(new byte[] { states[18 + offset], states[19 + offset] }, 0);
+            state.accelerometer.Z = BitConverter.ToInt16(new byte[] { states[20 + offset], states[21 + offset] }, 0);
+
+            // gyrometer
+            state.gyro.Pitch = BitConverter.ToInt16(new byte[] { states[22 + offset], states[23 + offset] }, 0);
+            state.gyro.Yaw = BitConverter.ToInt16(new byte[] { states[24 + offset], states[25 + offset] }, 0);
+            state.gyro.Roll = BitConverter.ToInt16(new byte[] { states[26 + offset], states[27 + offset] }, 0);
+
+            // Emulate DUALSHOCK 4
+            if (!xbox360ControllerEmulation)
+            {
+                dualshock4.SetButtonState(DualShock4Button.Cross, state.cross);
+                dualshock4.SetButtonState(DualShock4Button.Circle, state.circle);
+                dualshock4.SetButtonState(DualShock4Button.Triangle, state.triangle);
+                dualshock4.SetButtonState(DualShock4Button.Square, state.square);
+
+                DualShock4DPadDirection direction = DualShock4DPadDirection.None;
+                if (state.DpadDown) { direction = DualShock4DPadDirection.South; }
+                else if (state.DpadUp) { direction = DualShock4DPadDirection.North; }
+                else if (state.DpadLeft) { direction = DualShock4DPadDirection.West; }
+                else if (state.DpadRight) { direction = DualShock4DPadDirection.East; }
+                dualshock4.SetDPadDirection(direction);
+
+                dualshock4.SetAxisValue(DualShock4Axis.LeftThumbX, (byte)state.LX);
+                dualshock4.SetAxisValue(DualShock4Axis.LeftThumbY, (byte)state.LY);
+                dualshock4.SetAxisValue(DualShock4Axis.RightThumbX, (byte)state.RX);
+                dualshock4.SetAxisValue(DualShock4Axis.RightThumbY, (byte)state.RY);
+                dualshock4.SetButtonState(DualShock4Button.ThumbLeft, state.L3);
+                dualshock4.SetButtonState(DualShock4Button.ThumbRight, state.R3);
+
+                if ((byte)state.L2 >= triggerThreshold)
+                    dualshock4.LeftTrigger = (byte)state.L2;
+                else
+                    dualshock4.LeftTrigger = (byte)0;
+
+                if ((byte)state.R2 >= triggerThreshold)
+                    dualshock4.RightTrigger = (byte)state.R2;
+                else
+                    dualshock4.RightTrigger = (byte)0;
+
+                dualshock4.SetButtonState(DualShock4SpecialButton.Touchpad, state.touchBtn);
+                dualshock4.SetButtonState(DualShock4Button.Share, state.share);
+                dualshock4.SetButtonState(DualShock4Button.Options, state.options);
+                dualshock4.SetButtonState(DualShock4Button.ShoulderLeft, state.L1);
+                dualshock4.SetButtonState(DualShock4Button.ShoulderRight, state.R1);
+                dualshock4.SetButtonState(DualShock4SpecialButton.Ps, state.ps);
+            }
+            else // Emulate XBOX 360 Controller
+            {
+                xbox360Controller.SetButtonState(Xbox360Button.A, state.cross);
+                xbox360Controller.SetButtonState(Xbox360Button.B, state.circle);
+                xbox360Controller.SetButtonState(Xbox360Button.Y, state.triangle);
+                xbox360Controller.SetButtonState(Xbox360Button.X, state.square);
+
+                xbox360Controller.SetButtonState(Xbox360Button.Up, state.DpadUp);
+                xbox360Controller.SetButtonState(Xbox360Button.Left, state.DpadLeft);
+                xbox360Controller.SetButtonState(Xbox360Button.Right, state.DpadRight);
+                xbox360Controller.SetButtonState(Xbox360Button.Down, state.DpadDown);
+
+                //-32767 minimum
+                //32766 max
+                xbox360Controller.SetAxisValue(Xbox360Axis.LeftThumbX, (short)ConvertRange(state.LX, 0, 255, -32767, 32766));
+                xbox360Controller.SetAxisValue(Xbox360Axis.LeftThumbY, (short)ConvertRange(state.LY, 255, 0, -32767, 32766));
+                xbox360Controller.SetAxisValue(Xbox360Axis.RightThumbX, (short)ConvertRange(state.RX, 0, 255, -32767, 32766));
+                xbox360Controller.SetAxisValue(Xbox360Axis.RightThumbY, (short)ConvertRange(state.RY, 255, 0, -32767, 32766));
+                xbox360Controller.SetButtonState(Xbox360Button.LeftThumb, state.L3);
+                xbox360Controller.SetButtonState(Xbox360Button.RightThumb, state.R3);
+
+                xbox360Controller.LeftTrigger = (byte)state.L2;
+                xbox360Controller.RightTrigger = (byte)state.R2;
+
+                xbox360Controller.SetButtonState(Xbox360Button.Start, state.options);
+                xbox360Controller.SetButtonState(Xbox360Button.Back, state.share);
+                xbox360Controller.SetButtonState(Xbox360Button.LeftShoulder, state.L1);
+                xbox360Controller.SetButtonState(Xbox360Button.RightShoulder, state.R1);
+                xbox360Controller.SetButtonState(Xbox360Button.Guide, state.ps);
+            }
+        }
+
+        private void Xbox360Controller_FeedbackReceived1(object sender, Xbox360FeedbackReceivedEventArgs e)
         {
             l_rotor = e.SmallMotor;
             r_rotor = e.LargeMotor;
@@ -250,67 +305,7 @@ namespace DL1_Dualsense
 
         void ReadInput()
         {
-            ReadOnlySpan<byte> output = dualsense.Read(reportLength);
-            byte[] states = output.ToArray();
-            int offset = 0;
-            if (connectionType == ConnectionType.BT) { offset = 1; }
 
-            // states 0 is always 1
-            state.LX = states[1 + offset];
-            state.LY = states[2 + offset];
-            state.RX = states[3 + offset];
-            state.RY = states[4 + offset];
-            state.L2 = states[5 + offset];
-            state.R2 = states[6 + offset];
-
-            // state 7 always increments -> not used anywhere
-
-            byte buttonState = states[8 + offset];
-            state.triangle = (buttonState & (1 << 7)) != 0;
-            state.circle = (buttonState & (1 << 6)) != 0;
-            state.cross = (buttonState & (1 << 5)) != 0;
-            state.square = (buttonState & (1 << 4)) != 0;
-
-            // dpad
-            byte dpad_state = (byte)(buttonState & 0x0F);
-            state.SetDPadState(dpad_state);
-
-            byte misc = states[9 + offset];
-            state.R3 = (misc & (1 << 7)) != 0;
-            state.L3 = (misc & (1 << 6)) != 0;
-            state.options = (misc & (1 << 5)) != 0;
-            state.share = (misc & (1 << 4)) != 0;
-            state.R2Btn = (misc & (1 << 3)) != 0;
-            state.L2Btn = (misc & (1 << 2)) != 0;
-            state.R1 = (misc & (1 << 1)) != 0;
-            state.L1 = (misc & (1 << 0)) != 0;
-
-            byte misc2 = states[10 + offset];
-            state.ps = (misc2 & (1 << 0)) != 0;
-            state.touchBtn = (misc2 & 0x02) != 0;
-            state.micBtn = (misc2 & 0x04) != 0;
-
-            // trackpad touch
-            state.trackPadTouch0.ID = (byte)(states[33 + offset] & 0x7F);
-            state.trackPadTouch0.IsActive = (states[33 + offset] & 0x80) == 0;
-            state.trackPadTouch0.X = ((states[35 + offset] & 0x0F) << 8) | states[34];
-            state.trackPadTouch0.Y = ((states[36 + offset]) << 4) | ((states[35] & 0xF0) >> 4);
-
-            // trackpad touch
-            state.trackPadTouch1.ID = (byte)(states[37 + offset] & 0x7F);
-            state.trackPadTouch1.IsActive = (states[37 + offset] & 0x80) == 0;
-            state.trackPadTouch1.X = ((states[39 + offset] & 0x0F) << 8) | states[38];
-            state.trackPadTouch1.Y = ((states[40 + offset]) << 4) | ((states[39] & 0xF0) >> 4);
-
-            // accelerometer
-            state.accelerometer.X = BitConverter.ToInt16(new byte[] { states[16 + offset], states[17 + offset] }, 0);
-            state.accelerometer.Y = BitConverter.ToInt16(new byte[] { states[18 + offset], states[19 + offset] }, 0);
-            state.accelerometer.Z = BitConverter.ToInt16(new byte[] { states[20 + offset], states[21 + offset] }, 0);
-
-            // gyrometer
-            state.gyro.Pitch = BitConverter.ToInt16(new byte[] { states[22 + offset], states[23 + offset] }, 0);
-            state.gyro.Yaw = BitConverter.ToInt16(new byte[] { states[24 + offset], states[25 + offset] }, 0);
-            state.gyro.Roll = BitConverter.ToInt16(new byte[] { states[26 + offset], states[27 + offset] }, 0);
         }
 
         ConnectionType getConnectionType(Device dualsense)
@@ -320,12 +315,14 @@ namespace DL1_Dualsense
             {
                 Console.WriteLine("Connection type = USB");
                 reportLength = 64;
+                offset = 0;
                 return ConnectionType.USB;
             }
             else if (report.Length == 78)
             {
                 Console.WriteLine("Connection type = Bluetooth");
                 reportLength = 78;
+                offset = 1;
                 return ConnectionType.BT;
             }
             else { throw new ArgumentException("Could not specify connection type."); }
