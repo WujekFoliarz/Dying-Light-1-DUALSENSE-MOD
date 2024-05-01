@@ -4,8 +4,9 @@
 - Chase level display
 
 How to use:
-- Launch DL1-Dualsense.exe
-- Launch Dying Light
+- Start Dying Light
+- Start DL1-Dualsense.exe
+(Start the game before DL1-Dualsense, otherwise there may be some input lag)
 
 USB Recommended
 
