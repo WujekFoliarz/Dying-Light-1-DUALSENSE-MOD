@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Hooks.cpp" />
+    <ClCompile Include="MinHook\buffer.c">
+      <Filter>Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="MinHook\hde32.c">
+      <Filter>Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="MinHook\hde64.c">
+      <Filter>Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="MinHook\hook.c">
+      <Filter>Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="MinHook\trampoline.c">
+      <Filter>Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="PakLoader.cpp" />
+    <ClCompile Include="dxHooks.cpp" />
+    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="ImGui\imgui.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_demo.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_draw.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_dx11.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_win32.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_widgets.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="TestHook.cpp" />
+    <ClCompile Include="Fonts.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Hooks.h" />
+    <ClInclude Include="MinHook\buffer.h">
+      <Filter>Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\hde32.h">
+      <Filter>Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\hde64.h">
+      <Filter>Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\MinHook.h">
+      <Filter>Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\pstdint.h">
+      <Filter>Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\table32.h">
+      <Filter>Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\table64.h">
+      <Filter>Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="MinHook\trampoline.h">
+      <Filter>Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="PakLoader.h" />
+    <ClInclude Include="dxHooks.h" />
+    <ClInclude Include="Menu.h" />
+    <ClInclude Include="ImGui\imgui.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_dx11.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_win32.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_internal.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_rectpack.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_textedit.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_truetype.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imconfig.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="TestHook.h" />
+    <ClInclude Include="Fonts.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="dsound.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="dsound.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Minhook">
+      <UniqueIdentifier>{5b77ec94-6833-4008-8a7c-42abc14d8442}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Imgui">
+      <UniqueIdentifier>{e36f8510-0f3a-4dea-99ff-f06b9a552fa0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

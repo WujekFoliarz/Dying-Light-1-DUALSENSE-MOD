@@ -1,0 +1,14 @@
+LIBRARY DLML
+EXPORTS
+	DirectSoundCaptureCreate=fDirectSoundCaptureCreate @1
+	DirectSoundCaptureCreate8=fDirectSoundCaptureCreate8 @2
+	DirectSoundCaptureEnumerateA=fDirectSoundCaptureEnumerateA @3
+	DirectSoundCaptureEnumerateW=fDirectSoundCaptureEnumerateW @4
+	DirectSoundCreate=fDirectSoundCreate @5
+	DirectSoundCreate8=fDirectSoundCreate8 @6
+	DirectSoundEnumerateA=fDirectSoundEnumerateA @7
+	DirectSoundEnumerateW=fDirectSoundEnumerateW @8
+	DirectSoundFullDuplexCreate=fDirectSoundFullDuplexCreate @9
+	DllCanUnloadNow=fDllCanUnloadNow PRIVATE
+	DllGetClassObject=fDllGetClassObject PRIVATE
+	GetDeviceID=fGetDeviceID @12
