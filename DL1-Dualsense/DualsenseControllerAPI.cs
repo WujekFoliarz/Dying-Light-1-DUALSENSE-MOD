@@ -1,9 +1,8 @@
 ﻿using HidApi;
 using Nefarius.ViGEm.Client;
-using Nefarius.ViGEm.Client.Targets.DualShock4;
 using Nefarius.ViGEm.Client.Targets;
+using Nefarius.ViGEm.Client.Targets.DualShock4;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
-using System.Diagnostics;
 
 namespace DL1_Dualsense
 {
@@ -235,15 +234,15 @@ namespace DL1_Dualsense
                 outReport[15] = (byte)RightTriggerForces[3];
                 outReport[16] = (byte)RightTriggerForces[4];
                 outReport[17] = (byte)RightTriggerForces[5];
-                outReport[20] = (byte)RightTriggerForces[6];  
-                outReport[22] = (byte)LeftTriggerMode;  
-                outReport[23] = (byte)LeftTriggerForces[0];  
+                outReport[20] = (byte)RightTriggerForces[6];
+                outReport[22] = (byte)LeftTriggerMode;
+                outReport[23] = (byte)LeftTriggerForces[0];
                 outReport[24] = (byte)LeftTriggerForces[1];
                 outReport[25] = (byte)LeftTriggerForces[2];
                 outReport[26] = (byte)LeftTriggerForces[3];
                 outReport[27] = (byte)LeftTriggerForces[4];
                 outReport[28] = (byte)LeftTriggerForces[5];
-                outReport[31] = (byte)LeftTriggerForces[6]; 
+                outReport[31] = (byte)LeftTriggerForces[6];
                 outReport[39] = (byte)LedOptions.PlayerLedBrightness;
                 outReport[42] = (byte)PulseOptions.Off;
                 outReport[43] = (byte)ledBrightness;
@@ -272,13 +271,13 @@ namespace DL1_Dualsense
                 outReport[10] = (byte)MicrophoneLED; // microphone led
                 outReport[11] = 0x10;
                 outReport[12] = (byte)RightTriggerMode;
-                outReport[13] = (byte)RightTriggerForces[0];  
+                outReport[13] = (byte)RightTriggerForces[0];
                 outReport[14] = (byte)RightTriggerForces[1];
                 outReport[15] = (byte)RightTriggerForces[2];
                 outReport[16] = (byte)RightTriggerForces[3];
                 outReport[17] = (byte)RightTriggerForces[4];
                 outReport[18] = (byte)RightTriggerForces[5];
-                outReport[21] = (byte)RightTriggerForces[6]; 
+                outReport[21] = (byte)RightTriggerForces[6];
                 outReport[23] = (byte)LeftTriggerMode;
                 outReport[24] = (byte)LeftTriggerForces[0];
                 outReport[25] = (byte)LeftTriggerForces[1];

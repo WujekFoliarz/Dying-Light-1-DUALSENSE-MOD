@@ -70,7 +70,7 @@ namespace DL1_Dualsense
             short microphone = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01C152F8, 0x50) + 0x40);
             if (microphone == 1)
                 return true;
-            else 
+            else
                 return false;
         }
 
