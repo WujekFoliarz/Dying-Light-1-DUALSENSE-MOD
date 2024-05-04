@@ -20,6 +20,20 @@ namespace DL1_Dualsense
             return chase;
         }
 
+        public bool isPlayerInMenu() // not MAIN menu
+        {
+            IntPtr moduleBase = swed.GetModuleBase("gamedll_x64_rwdi.dll");
+            short pause = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01BAFA68, 0xA30) + 0x30);
+
+            switch (pause)
+            {
+                case 255:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public bool isUVOn()
         {
             // I was unable to find a consistant UV Flashlight pointer that works 100% of the time.
@@ -72,6 +86,21 @@ namespace DL1_Dualsense
                 return true;
             else
                 return false;
+        }
+
+        public void setMicrophone(bool onORoff)
+        {
+            IntPtr moduleBase = swed.GetModuleBase("gamedll_x64_rwdi.dll");
+
+            switch (onORoff)
+            {
+                case true:
+                    swed.WriteShort(swed.ReadPointer(moduleBase, 0x01C152F8, 0x50) + 0x40, 1);
+                    break;
+                case false:
+                    swed.WriteShort(swed.ReadPointer(moduleBase, 0x01C152F8, 0x50) + 0x40, 0);
+                    break;
+            }
         }
 
         public int getWeaponType()

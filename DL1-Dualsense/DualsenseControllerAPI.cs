@@ -63,7 +63,7 @@ namespace DL1_Dualsense
         {
             try
             {
-                int micLed = microphoneLED ? 1 : 0;
+                int micLed = microphoneLED ? 0 : 1;
                 dualsense.Write(PrepareReport(R, G, B, leftTriggerMode, rightTriggerMode, leftTriggerForces, rightTriggerForces, playerLED, brightness, micLed));
             }
             catch (HidException)
@@ -170,6 +170,19 @@ namespace DL1_Dualsense
                 dualshock4.SetButtonState(DualShock4Button.ShoulderLeft, state.L1);
                 dualshock4.SetButtonState(DualShock4Button.ShoulderRight, state.R1);
                 dualshock4.SetButtonState(DualShock4SpecialButton.Ps, state.ps);
+                
+                if(state.micBtn == true)
+                {
+                    switch (microphoneLED)
+                    {
+                        case true:
+                            Program.turnMicrophone(false);
+                            break;
+                        case false:
+                            Program.turnMicrophone(true);
+                            break;
+                    }
+                }
             }
             else // Emulate XBOX 360 Controller
             {
@@ -201,6 +214,11 @@ namespace DL1_Dualsense
                 xbox360Controller.SetButtonState(Xbox360Button.RightShoulder, state.R1);
                 xbox360Controller.SetButtonState(Xbox360Button.Guide, state.ps);
             }
+        }
+
+        public bool micButtonState()
+        {
+            return state.micBtn ? false : true;
         }
 
         private void Xbox360Controller_FeedbackReceived1(object sender, Xbox360FeedbackReceivedEventArgs e)
