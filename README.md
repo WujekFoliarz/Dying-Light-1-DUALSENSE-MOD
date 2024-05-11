@@ -4,8 +4,8 @@
 - Chase level display
 
 How to use (1.4v+):
-- Download and install ViGEMbus (Windows restart required): https://github.com/nefarius/ViGEmBus/releases/tag/v1.22.0
-- Download and install .NET 8.0: https://dotnet.microsoft.com/en-us/download/dotnet/8.0
+- Download and install ViGEMbus (Windows restart required): [Click here (Download "ViGEmBus_1.22.0_x64_x86_arm64.exe")](https://github.com/nefarius/ViGEmBus/releases/tag/v1.22.0)
+- Download and install .NET 8.0: [Click here](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-8.0.4-windows-x64-installer)
 - Paste the files in game directory
 - Disable Steam Input for Dying Light
 
