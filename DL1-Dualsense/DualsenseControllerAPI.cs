@@ -3,11 +3,66 @@ using Nefarius.ViGEm.Client;
 using Nefarius.ViGEm.Client.Targets;
 using Nefarius.ViGEm.Client.Targets.DualShock4;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
+using System.Runtime.InteropServices;
+
 
 namespace DL1_Dualsense
 {
     public class DualsenseControllerAPI
     {
+        // P/Invoke to get the foreground window
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        // P/Invoke to get system metrics for screen dimensions
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
+
+        // P/Invoke to find a window by its title
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        // P/Invoke to get the window rectangle
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        // P/Invoke to send input
+        [DllImport("user32.dll")]
+        private static extern uint SendInput(uint nInputs, [MarshalAs(UnmanagedType.LPArray), In] INPUT[] pInputs, int cbSize);
+
+        private const int INPUT_MOUSE = 0;
+        private const uint MOUSEEVENTF_MOVE = 0x0001;
+        private const uint MOUSEEVENTF_ABSOLUTE = 0x8000;
+        private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
+        private const uint MOUSEEVENTF_LEFTUP = 0x0004;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct INPUT
+        {
+            public int type;
+            public MOUSEINPUT mi;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MOUSEINPUT
+        {
+            public int dx;
+            public int dy;
+            public uint mouseData;
+            public uint dwFlags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
         private bool bt_initialized = false;
         private bool xbox360ControllerEmulation = false;
         public int l_rotor;
@@ -22,6 +77,7 @@ namespace DL1_Dualsense
         private DSState state;
         private DSBattery battery;
 
+
         public int R = 0;
         public int G = 0;
         public int B = 0;
@@ -31,8 +87,9 @@ namespace DL1_Dualsense
         public int[] rightTriggerForces = new int[7];
         public PlayerID playerLED = 0;
         public Brightness brightness = Brightness.high;
-        public bool microphoneLED = false;
+        public bool microphoneLED = true;
         public int triggerThreshold;
+        public bool useTouchpad = false;
 
         public void Start()
         {
@@ -135,6 +192,8 @@ namespace DL1_Dualsense
             // Emulate DUALSHOCK 4
             if (!xbox360ControllerEmulation)
             {
+                ConvertTouchpadToMousePosition("Dying Light", state.trackPadTouch0.X, state.trackPadTouch0.Y, state.trackPadTouch0.IsActive, useTouchpad, state.touchBtn);
+
                 dualshock4.SetButtonState(DualShock4Button.Cross, state.cross);
                 dualshock4.SetButtonState(DualShock4Button.Circle, state.circle);
                 dualshock4.SetButtonState(DualShock4Button.Triangle, state.triangle);
@@ -170,8 +229,8 @@ namespace DL1_Dualsense
                 dualshock4.SetButtonState(DualShock4Button.ShoulderLeft, state.L1);
                 dualshock4.SetButtonState(DualShock4Button.ShoulderRight, state.R1);
                 dualshock4.SetButtonState(DualShock4SpecialButton.Ps, state.ps);
-                
-                if(state.micBtn == true)
+
+                if (state.micBtn == true)
                 {
                     switch (microphoneLED)
                     {
@@ -244,7 +303,7 @@ namespace DL1_Dualsense
                 outReport[3] = (byte)l_rotor; // right low freq motor 0-255
                 outReport[4] = (byte)r_rotor; // left low freq motor 0-255
                 outReport[9] = (byte)MicrophoneLED; //microphone led
-                outReport[10] = false ? (byte)0x10 : (byte)0x00;
+                outReport[10] = microphoneLED ? (byte)0x00 : (byte)0x10;
                 outReport[11] = (byte)RightTriggerMode;  // Swapped with LeftTriggerMode
                 outReport[12] = (byte)RightTriggerForces[0];  // Swapped with LeftTriggerForces
                 outReport[13] = (byte)RightTriggerForces[1];
@@ -287,7 +346,7 @@ namespace DL1_Dualsense
                 outReport[4] = (byte)r_rotor; // right low freq motor 0-255
                 outReport[5] = (byte)l_rotor; // left low freq motor 0-255
                 outReport[10] = (byte)MicrophoneLED; // microphone led
-                outReport[11] = 0x10;
+                outReport[11] = microphoneLED ? (byte)0x00 : (byte)0x10;
                 outReport[12] = (byte)RightTriggerMode;
                 outReport[13] = (byte)RightTriggerForces[0];
                 outReport[14] = (byte)RightTriggerForces[1];
@@ -319,10 +378,76 @@ namespace DL1_Dualsense
             return outReport;
         }
 
-
-        void ReadInput()
+        public void Close()
         {
+            dualsense.Dispose();
+        }
 
+        private static void SendMouseInput(int x, int y, uint mouseEvent)
+        {
+            INPUT[] inputs = new INPUT[]
+            {
+            new INPUT
+            {
+                type = INPUT_MOUSE,
+                mi = new MOUSEINPUT
+                {
+                    dx = x,
+                    dy = y,
+                    dwFlags = mouseEvent | MOUSEEVENTF_ABSOLUTE,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+            };
+
+            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+        }
+
+        private static bool lastTouchPadState = false;
+        public static void ConvertTouchpadToMousePosition(string windowTitle, int touchX, int touchY, bool isTouchActive, bool isTouchAllowed, bool isClicked)
+        {
+            if (isTouchAllowed && isTouchActive)
+            {
+                // Find the window handle by the title
+                IntPtr hWnd = FindWindow(null, windowTitle);
+
+                if (hWnd != IntPtr.Zero)
+                {
+                    // Get the window rectangle
+                    GetWindowRect(hWnd, out RECT windowRect);
+
+                    // Adjust touchpad coordinates based on sensitivity
+                    touchX = (int)(touchX * 0.15f);
+                    touchY = (int)(touchY * 0.15f);
+
+                    // Clamp the touchpad coordinates to their respective ranges
+                    touchX = Math.Clamp(touchX, 0, 1920);
+                    touchY = Math.Clamp(touchY, 0, 1079);
+
+                    // Map touchpad coordinates to screen coordinates
+                    int screenX = (int)((touchX / 1920.0f) * (windowRect.Right - windowRect.Left)) + windowRect.Left;
+                    int screenY = (int)((touchY / 1079.0f) * (windowRect.Bottom - windowRect.Top)) + windowRect.Top;
+
+                    // Normalize coordinates to 0 - 65535 range for SendInput
+                    int normalizedX = (screenX * 65535) / GetSystemMetrics(0);
+                    int normalizedY = (screenY * 65535) / GetSystemMetrics(1);
+
+                    // Move mouse to the position and click
+                    SendMouseInput(normalizedX, normalizedY, MOUSEEVENTF_MOVE);
+
+                    if (isClicked && lastTouchPadState == false)
+                    {
+                        SendMouseInput(normalizedX, normalizedY, MOUSEEVENTF_LEFTDOWN);
+                        lastTouchPadState = true;
+                    }
+                    else if (!isClicked)
+                    {
+                        SendMouseInput(normalizedX, normalizedY, MOUSEEVENTF_LEFTUP);
+                        lastTouchPadState = false;
+                    }
+                }
+            }
         }
 
         ConnectionType getConnectionType(Device dualsense)
