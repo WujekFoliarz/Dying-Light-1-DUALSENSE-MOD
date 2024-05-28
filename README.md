@@ -9,7 +9,6 @@ How to use (1.4v+):
 - Paste the files in game directory
 - Disable Steam Input for Dying Light
 
-USB Recommended
 Please report any bugs or weapons that don't create trigger resistance
 
 ---
