@@ -1,4 +1,5 @@
 # FEATURES
+- Haptic Feedback
 - Adaptive triggers
 - Player LED
 - Chase level display
