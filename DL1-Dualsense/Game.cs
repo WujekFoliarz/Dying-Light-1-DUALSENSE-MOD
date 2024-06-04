@@ -72,6 +72,7 @@ namespace DL1_Dualsense
             IntPtr moduleBase = swed.GetModuleBase("gamedll_x64_rwdi.dll");
             short flashlight1 = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01C15308, 0xC8, 0x188, 0x38, 0xDA0, 0x2E0) + 0x24);
             short flashlight2 = swed.ReadShort(swed.ReadPointer(moduleBase, 0x01C15308, 0x390, 0x118, 0x38, 0xDE0, 0x2E0) + 0x24);
+
             if (flashlight1 == 0 && flashlight2 == 0)
                 return false;
             else

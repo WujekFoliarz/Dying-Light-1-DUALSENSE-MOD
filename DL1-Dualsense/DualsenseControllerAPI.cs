@@ -3,6 +3,7 @@ using Nefarius.ViGEm.Client;
 using Nefarius.ViGEm.Client.Targets;
 using Nefarius.ViGEm.Client.Targets.DualShock4;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 
@@ -63,6 +64,7 @@ namespace DL1_Dualsense
             public IntPtr dwExtraInfo;
         }
 
+        public HapticFeedback hapticFeedback = new HapticFeedback();
         private bool bt_initialized = false;
         private bool xbox360ControllerEmulation = false;
         public int l_rotor;
@@ -74,10 +76,9 @@ namespace DL1_Dualsense
         private IDualShock4Controller dualshock4;
         private DeviceInfo dualsenseInfo;
         private Device dualsense;
-        private DSState state;
-        private DSBattery battery;
 
-
+        public DSState state;
+        public PulseOptions pulseOption = PulseOptions.FadeOut;
         public int R = 0;
         public int G = 0;
         public int B = 0;
@@ -86,10 +87,11 @@ namespace DL1_Dualsense
         public int[] leftTriggerForces = new int[7];
         public int[] rightTriggerForces = new int[7];
         public PlayerID playerLED = 0;
-        public Brightness brightness = Brightness.high;
+        public Brightness brightness = Brightness.low;
         public bool microphoneLED = true;
         public int triggerThreshold;
         public bool useTouchpad = false;
+        public GameState gameState = new GameState();
 
         public void Start()
         {
@@ -100,9 +102,7 @@ namespace DL1_Dualsense
             byte[] report = new byte[reportLength];
 
             state = new DSState();
-            battery = new DSBattery();
             ViGEmClient client = new ViGEmClient();
-
 
             xbox360Controller = client.CreateXbox360Controller();
             dualshock4 = client.CreateDualShock4Controller();
@@ -114,9 +114,57 @@ namespace DL1_Dualsense
 
             dualshock4.FeedbackReceived += Dualshock4_FeedbackReceived;
             xbox360Controller.FeedbackReceived += Xbox360Controller_FeedbackReceived1;
+
+            R = 0;
+            G = 0;
+            B = 255;
+
+            gameState = GameState.Unknown;
+
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    writeToController();
+
+                    if (state.micBtn == true)
+                    {
+                        switch (microphoneLED)
+                        {
+                            case true:
+                                Program.turnMicrophone(false);
+                                break;
+                            case false:
+                                Program.turnMicrophone(true);
+                                break;
+                        }
+                    }
+
+                    Thread.Sleep(25);
+                }
+            }).Start();
         }
 
-        public void emulatedControllerRefresh()
+        bool flashlight = false;
+        bool uvWorking = false;
+        bool uvSoundPlaying = false;
+        Stopwatch hapticCooldown = new Stopwatch();
+        public void handleHaptics()
+        {
+
+        }
+
+        public void PlayHaptics(float leftSpeakerVolume, float rightSpeakerVolume, float leftHapticVolume, float rightHapticVolume, string hapticEffect)
+        {
+            new Task(() =>
+            {
+                hapticFeedback.hapticEffect.SetEffect(hapticEffect);
+                hapticFeedback.PlayHaptics(leftSpeakerVolume, rightSpeakerVolume, leftHapticVolume, rightHapticVolume);
+
+            }).Start();
+        }
+
+        public void writeToController()
         {
             try
             {
@@ -127,7 +175,11 @@ namespace DL1_Dualsense
             {
                 Console.WriteLine("Connection to DUALSENSE was interrupted.");
             }
+        }
 
+
+        public void emulatedControllerRefresh()
+        {
             ReadOnlySpan<byte> output = dualsense.Read(reportLength);
             byte[] states = output.ToArray();
             if (connectionType == ConnectionType.BT) { offset = 1; }
@@ -230,18 +282,6 @@ namespace DL1_Dualsense
                 dualshock4.SetButtonState(DualShock4Button.ShoulderRight, state.R1);
                 dualshock4.SetButtonState(DualShock4SpecialButton.Ps, state.ps);
 
-                if (state.micBtn == true)
-                {
-                    switch (microphoneLED)
-                    {
-                        case true:
-                            Program.turnMicrophone(false);
-                            break;
-                        case false:
-                            Program.turnMicrophone(true);
-                            break;
-                    }
-                }
             }
             else // Emulate XBOX 360 Controller
             {
@@ -298,10 +338,14 @@ namespace DL1_Dualsense
             if (connectionType == ConnectionType.USB)
             {
                 outReport[0] = 0x02;
-                outReport[1] = 0xff;
+                outReport[1] = 0xFC;
                 outReport[2] = 0x1 | 0x2 | 0x4 | 0x10 | 0x40;
                 outReport[3] = (byte)l_rotor; // right low freq motor 0-255
                 outReport[4] = (byte)r_rotor; // left low freq motor 0-255
+                outReport[5] = 0x7C;
+                outReport[6] = 0x7C;
+                outReport[7] = 0x7C;
+                outReport[8] = 0x7C;
                 outReport[9] = (byte)MicrophoneLED; //microphone led
                 outReport[10] = microphoneLED ? (byte)0x00 : (byte)0x10;
                 outReport[11] = (byte)RightTriggerMode;  // Swapped with LeftTriggerMode
@@ -320,9 +364,10 @@ namespace DL1_Dualsense
                 outReport[27] = (byte)LeftTriggerForces[4];
                 outReport[28] = (byte)LeftTriggerForces[5];
                 outReport[31] = (byte)LeftTriggerForces[6];
-                outReport[39] = (byte)LedOptions.PlayerLedBrightness;
-                outReport[42] = (byte)PulseOptions.Off;
-                outReport[43] = (byte)ledBrightness;
+                outReport[39] = (byte)brightness;
+                outReport[41] = (byte)LedOptions.PlayerLedBrightness;
+                outReport[42] = (byte)pulseOption;
+                outReport[43] = (byte)brightness;
                 outReport[44] = (byte)playerLED;
                 outReport[45] = (byte)r;
                 outReport[46] = (byte)g;
@@ -501,6 +546,19 @@ namespace DL1_Dualsense
     }
 
     [Flags]
+    public enum GameState
+    {
+        Unknown = 0,
+        Closing = 1,
+        InMenu = 2,
+        FlashlightOn = 3,
+        UvFlashlightOn = 4,
+        UvFlashlightDrained = 5,
+        Idle = 6,
+        Spotted = 7,
+    }
+
+    [Flags]
     public enum ConnectionType
     {
         BT = 0x0,
@@ -569,7 +627,7 @@ namespace DL1_Dualsense
         POWER_SUPPLY_STATUS_UNKNOWN = 0x0
     }
 
-    class DSGyro
+    public class DSGyro
     {
         public int Pitch { get; set; }
         public int Yaw { get; set; }
@@ -583,7 +641,7 @@ namespace DL1_Dualsense
         }
     }
 
-    class DSAccelerometer
+    public class DSAccelerometer
     {
         public int X { get; set; }
         public int Y { get; set; }
@@ -609,7 +667,7 @@ namespace DL1_Dualsense
         }
     }
 
-    class DSTouchpad
+    public class DSTouchpad
     {
         public bool IsActive { get; set; }
         public int ID { get; set; }
@@ -626,7 +684,7 @@ namespace DL1_Dualsense
     }
 
 
-    class DSState
+    public class DSState
     {
         public bool square, triangle, circle, cross;
         public bool DpadUp, DpadDown, DpadLeft, DpadRight;
@@ -700,95 +758,6 @@ namespace DL1_Dualsense
                     DpadRight = false;
                     break;
             }
-        }
-    }
-
-    class DSLight
-    {
-        public Brightness brightness = Brightness.low;
-        public PlayerID playerNumber = PlayerID.PLAYER_1;
-        public LedOptions ledOption = LedOptions.Both;
-        public PulseOptions pulseOptions = PulseOptions.Off;
-        public byte[] TouchpadColor = new byte[3];
-
-        public void SetLEDOption(LedOptions option)
-        {
-            if (!Enum.IsDefined(typeof(LedOptions), option))
-                throw new ArgumentException("LEDOption type is invalid");
-            ledOption = option;
-        }
-
-        public void SetPulseOption(PulseOptions option)
-        {
-            if (!Enum.IsDefined(typeof(PulseOptions), option))
-                throw new ArgumentException("PulseOption type is invalid");
-            pulseOptions = option;
-        }
-
-        public void SetBrightness(Brightness brightness)
-        {
-            if (!Enum.IsDefined(typeof(Brightness), brightness))
-                throw new ArgumentException("Brightness type is invalid");
-            this.brightness = brightness;
-        }
-
-        public void SetPlayerID(PlayerID player)
-        {
-            if (!Enum.IsDefined(typeof(PlayerID), player))
-                throw new ArgumentException("PlayerID type is invalid");
-            playerNumber = player;
-        }
-
-        public void SetColor(int r, int g, int b)
-        {
-            if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-                throw new ArgumentException("Color channels should be between 0 and 255");
-
-            TouchpadColor[0] = (byte)r;
-            TouchpadColor[1] = (byte)g;
-            TouchpadColor[2] = (byte)b;
-        }
-
-        public void SetColor((int, int, int) color)
-        {
-            SetColor(color.Item1, color.Item2, color.Item3);
-        }
-    }
-
-    class DSAudio
-    {
-        public int microphone_mute;
-        public int microphone_led;
-
-        public void SetMicrophoneLED(bool value)
-        {
-            microphone_led = value ? 1 : 0;
-        }
-
-        public void SetMicrophoneState(bool state)
-        {
-            SetMicrophoneLED(state);
-            microphone_mute = state ? 1 : 0;
-        }
-    }
-
-    class DSTrigger
-    {
-        public TriggerModes mode = TriggerModes.Off;
-        public int[] forces = new int[7];
-
-        public void SetForce(int forceID, int force)
-        {
-            if (forceID < 0 || forceID > 6)
-                throw new ArgumentException("Force ID should be between 0 and 6");
-            forces[forceID] = force;
-        }
-
-        public void SetMode(TriggerModes mode)
-        {
-            if (!Enum.IsDefined(typeof(TriggerModes), mode))
-                throw new ArgumentException("Trigger mode type is invalid");
-            this.mode = mode;
         }
     }
 
