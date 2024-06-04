@@ -71,6 +71,7 @@ internal class Program
                 controllerAPI.playerLED = 0;
                 controllerAPI.emulatedControllerRefresh();
                 controllerAPI.Close();
+                Thread.Sleep(2000);
                 Environment.Exit(0);
             }
             else
@@ -703,7 +704,7 @@ internal class Program
                             }
                         }
 
-                        Console.WriteLine(weapon);
+                        //Console.WriteLine(weapon);
 
                         if (game.isUVRecharging())
                         {

@@ -6,7 +6,7 @@ namespace DL1_Dualsense
 {
     public class HapticFeedback : IDisposable
     {
-        private const string deviceId = "{0.0.0.00000000}.{32b35ed3-8f82-4314-9c18-feaec4cfe667}";
+        private const string deviceId = "DualSense Wireless Controller";
         private static MMDevice device;
         public bool initialized = false;
         public bool forceStop = false;
@@ -16,7 +16,7 @@ namespace DL1_Dualsense
 
         public HapticFeedback()
         {
-            device = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.All).FirstOrDefault(d => d.ID == deviceId);
+            device = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.All).FirstOrDefault(d => d.DeviceFriendlyName == deviceId);
             if (device == null || device.State == DeviceState.NotPresent || device.State == DeviceState.Unplugged)
             {
                 Console.WriteLine("Device not found!");
