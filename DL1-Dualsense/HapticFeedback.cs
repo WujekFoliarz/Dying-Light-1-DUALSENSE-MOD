@@ -1,13 +1,11 @@
 ﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using System.Security.Cryptography.X509Certificates;
 
 namespace DL1_Dualsense
 {
     public class HapticFeedback : IDisposable
     {
-        private const string deviceId = "DualSense Wireless Controller";
-        private static MMDevice device;
+        private MMDevice device;
         public bool initialized = false;
         public bool forceStop = false;
         public bool Playing = false;
@@ -16,7 +14,15 @@ namespace DL1_Dualsense
 
         public HapticFeedback()
         {
-            device = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.All).FirstOrDefault(d => d.DeviceFriendlyName == deviceId);
+            MMDeviceEnumerator mmdeviceEnumerator = new MMDeviceEnumerator();
+            foreach (MMDevice mmdevice in mmdeviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+            {
+                if (mmdevice.FriendlyName.Contains("Wireless Controller"))
+                {
+                    device = mmdevice;
+                }
+            }
+
             if (device == null || device.State == DeviceState.NotPresent || device.State == DeviceState.Unplugged)
             {
                 Console.WriteLine("Device not found!");
@@ -26,23 +32,22 @@ namespace DL1_Dualsense
             initialized = true;
         }
 
-        public void PlayHaptics(float leftSpeakerVolume, float rightSpeakerVolume, float leftHapticVolume, float rightHapticVolume)
+        public void PlayHaptics(float leftHapticVolume, float rightHapticVolume)
         {
             try
             {
                 if (hapticEffect.currentEffect != string.Empty)
                 {
                     forceStop = false;
-                    WasapiOut playbackStream = new WasapiOut(device, AudioClientShareMode.Shared, true, 100);
+                    WasapiOut playbackStream = new WasapiOut(device, AudioClientShareMode.Shared, false, 100);
                     WaveFileReader waveProvider = new WaveFileReader(folder + hapticEffect.currentEffect);
                     MultiplexingWaveProvider multiplexingWaveProvider = new MultiplexingWaveProvider(new IWaveProvider[] { waveProvider }, 4);
+
                     multiplexingWaveProvider.ConnectInputToOutput(0, 0);
                     multiplexingWaveProvider.ConnectInputToOutput(0, 1);
                     multiplexingWaveProvider.ConnectInputToOutput(0, 2);
                     multiplexingWaveProvider.ConnectInputToOutput(0, 3);
                     playbackStream.Init(multiplexingWaveProvider);
-                    playbackStream.AudioStreamVolume.SetChannelVolume(0, leftSpeakerVolume);
-                    playbackStream.AudioStreamVolume.SetChannelVolume(1, rightSpeakerVolume);
                     playbackStream.AudioStreamVolume.SetChannelVolume(2, leftHapticVolume);
                     playbackStream.AudioStreamVolume.SetChannelVolume(3, rightHapticVolume);
                     playbackStream.Play();

@@ -78,6 +78,7 @@ namespace DL1_Dualsense
         private Device dualsense;
 
         public DSState state;
+        public SpeakerVolume speakerVolume = SpeakerVolume.Off;
         public PulseOptions pulseOption = PulseOptions.FadeOut;
         public int R = 0;
         public int G = 0;
@@ -91,7 +92,7 @@ namespace DL1_Dualsense
         public bool microphoneLED = true;
         public int triggerThreshold;
         public bool useTouchpad = false;
-        public GameState gameState = new GameState();
+
 
         public void Start()
         {
@@ -118,8 +119,6 @@ namespace DL1_Dualsense
             R = 0;
             G = 0;
             B = 255;
-
-            gameState = GameState.Unknown;
 
             new Thread(() =>
             {
@@ -154,12 +153,13 @@ namespace DL1_Dualsense
 
         }
 
-        public void PlayHaptics(float leftSpeakerVolume, float rightSpeakerVolume, float leftHapticVolume, float rightHapticVolume, string hapticEffect)
+        public void PlayHaptics(float leftHapticVolume, float rightHapticVolume, string hapticEffect)
         {
             new Task(() =>
             {
                 hapticFeedback.hapticEffect.SetEffect(hapticEffect);
-                hapticFeedback.PlayHaptics(leftSpeakerVolume, rightSpeakerVolume, leftHapticVolume, rightHapticVolume);
+
+                hapticFeedback.PlayHaptics(leftHapticVolume, rightHapticVolume);
 
             }).Start();
         }
@@ -174,6 +174,10 @@ namespace DL1_Dualsense
             catch (HidException)
             {
                 Console.WriteLine("Connection to DUALSENSE was interrupted.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -342,14 +346,14 @@ namespace DL1_Dualsense
                 outReport[2] = 0x1 | 0x2 | 0x4 | 0x10 | 0x40;
                 outReport[3] = (byte)l_rotor; // right low freq motor 0-255
                 outReport[4] = (byte)r_rotor; // left low freq motor 0-255
-                outReport[5] = 0x7C;
-                outReport[6] = 0x7C;
-                outReport[7] = 0x7C;
-                outReport[8] = 0x7C;
+                //outReport[5] = 0; <-- headset volume
+                outReport[6] = (byte)speakerVolume; // <-- speaker volume, needs to be changed on some configurations where naudio wont let you change channel volume, 0x7C is the loudest setting
+                //outReport[7] = 0; <-- this is mic volume i think
+                outReport[8] = 0x7C; // <-- no idea what that does
                 outReport[9] = (byte)MicrophoneLED; //microphone led
                 outReport[10] = microphoneLED ? (byte)0x00 : (byte)0x10;
-                outReport[11] = (byte)RightTriggerMode;  // Swapped with LeftTriggerMode
-                outReport[12] = (byte)RightTriggerForces[0];  // Swapped with LeftTriggerForces
+                outReport[11] = (byte)RightTriggerMode;
+                outReport[12] = (byte)RightTriggerForces[0];
                 outReport[13] = (byte)RightTriggerForces[1];
                 outReport[14] = (byte)RightTriggerForces[2];
                 outReport[15] = (byte)RightTriggerForces[3];
@@ -546,16 +550,15 @@ namespace DL1_Dualsense
     }
 
     [Flags]
-    public enum GameState
+    public enum SpeakerVolume
     {
-        Unknown = 0,
-        Closing = 1,
-        InMenu = 2,
-        FlashlightOn = 3,
-        UvFlashlightOn = 4,
-        UvFlashlightDrained = 5,
-        Idle = 6,
-        Spotted = 7,
+        Off = 0x1C,
+        Very_Quiet = 0x2C,
+        Quiet = 0x3C,
+        Moderate = 0x4C,
+        Loud = 0x5C,
+        Very_Loud = 0x6C,
+        Loudest = 0x7C
     }
 
     [Flags]
