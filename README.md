@@ -11,6 +11,7 @@ How to use (1.4v+):
 - Disable Steam Input for Dying Light
 
 Please report any bugs or weapons that don't create trigger resistance
+
 You can add me on discord - wujek_foliarz
 
 ---
