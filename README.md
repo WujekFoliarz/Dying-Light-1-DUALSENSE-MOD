@@ -12,6 +12,8 @@ How to use (1.4v+):
 
 Please report any bugs or weapons that don't create trigger resistance
 
+EPIC GAMES STORE VERSION MAY NOT WORK
+
 You can add me on discord - wujek_foliarz
 
 ---
