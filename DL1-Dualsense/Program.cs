@@ -5,7 +5,6 @@ internal class Program
 {
     private static Game game = new Game();
 
-
     private static void Main(string[] args)
     {
         DualsenseControllerAPI controllerAPI = new DualsenseControllerAPI();
@@ -14,7 +13,6 @@ internal class Program
         float hp = 0; // Player's health
         int weapon = 0;
         int lastWeapon = 0;
-
         int uvAnimationCycleR = 60;
         int uvAnimationCycleB = 255;
         bool uvAnimationSide = false; // false means increasing, true means decreasing
@@ -26,6 +24,9 @@ internal class Program
         bool lastDpadUP = false; // for flashlight
         bool lastR2btn = false; // for weapons
         bool wasZipline = false;
+        float walkSpeed = 0;
+        int Lfoot = 1;
+        int Rfoot = 0;
 
         if (!apiRunning)
         {
@@ -45,8 +46,10 @@ internal class Program
 
         bool firstTime = true;
         Stopwatch hapticCooldown = new Stopwatch();
+        Stopwatch footstepsCooldown = new Stopwatch();
         Random rand = new Random();
         hapticCooldown.Start();
+        footstepsCooldown.Start();
         while (true)
         {
             Process[] process = Process.GetProcessesByName("DyingLightGame");
@@ -93,6 +96,7 @@ internal class Program
                         hp = game.getHP();
                         lastWeapon = weapon;
                         weapon = game.getWeaponType();
+                        walkSpeed = game.getPlayerWalkSpeed();
 
                         //Console.WriteLine(weapon);
                         if (weapon == 2058 || weapon >= 2024 && weapon <= 2029) // 1H sharp weapon (machete etc.)
@@ -275,6 +279,7 @@ internal class Program
                         }
                         else if (weapon == 1282 && lastWeapon != 1283 || weapon == 1246) // Automatic rifle
                         {
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.triggerThreshold = 255;
                             controllerAPI.rightTriggerMode = TriggerModes.Pulse_B;
                             controllerAPI.rightTriggerForces = [10, 255, 120, 0, 0, 0, 0];
@@ -320,6 +325,7 @@ internal class Program
                             if (controllerAPI.state.R2 >= controllerAPI.triggerThreshold)
                             {
                                 controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                                 switch (rand.Next(0, 3))
                                 {
                                     case 0:
@@ -351,10 +357,11 @@ internal class Program
                         }
                         else if (weapon == 757 || weapon >= 734 && weapon <= 759) // Bows
                         {
-                            if (weapon == 757 && hapticCooldown.ElapsedMilliseconds >= 50)
+                            if (weapon == 757 && hapticCooldown.ElapsedMilliseconds >= 600)
                             {
                                 controllerAPI.speakerVolume = SpeakerVolume.Off;
                                 controllerAPI.PlayHaptics(1, 1, HapticEffect.BowShot);
+                                hapticCooldown.Restart();
                             }
                             else
                             {
@@ -368,10 +375,11 @@ internal class Program
                                     controllerAPI.PlayHaptics(1, 1, HapticEffect.BowLoad);
                                     hapticCooldown.Restart();
                                 }
-                                else if (controllerAPI.state.R2 <= controllerAPI.triggerThreshold && lastR2btn)
+                                else if (controllerAPI.state.R2 < controllerAPI.triggerThreshold && lastR2btn)
                                 {
                                     controllerAPI.speakerVolume = SpeakerVolume.Off;
                                     controllerAPI.PlayHaptics(1, 1, HapticEffect.BowReload);
+                                    hapticCooldown.Restart();
                                 }
                             }
                         }
@@ -388,7 +396,7 @@ internal class Program
                                 hapticCooldown.Restart();
                             }
                         }
-                        else if (weapon == 1715 || weapon == 1690) // Double-barrel shotgun
+                        else if (weapon == 1715 || weapon == 1690 || weapon == 1724) // Double-barrel shotgun
                         {
                             controllerAPI.triggerThreshold = 255;
                             controllerAPI.rightTriggerMode = TriggerModes.Pulse_AB;
@@ -444,15 +452,16 @@ internal class Program
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Very_Loud;
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.PickupItem);
+                            controllerAPI.PlaySpeaker(HapticEffect.PickupItem);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2403 && hapticCooldown.ElapsedMilliseconds >= 1000) // Dropkick start
+                        else if (weapon == 2403 && hapticCooldown.ElapsedMilliseconds >= 800) // Dropkick start
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.Dropkick);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2404 && hapticCooldown.ElapsedMilliseconds >= 500) // Dropkick end
+                        else if (weapon == 2404 && hapticCooldown.ElapsedMilliseconds >= 1000) // Dropkick end
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.DropkickEnd);
@@ -475,6 +484,7 @@ internal class Program
                             if (hapticCooldown.ElapsedMilliseconds >= 2500)
                             {
                                 controllerAPI.speakerVolume = SpeakerVolume.Quiet;
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                                 controllerAPI.PlayHaptics(1, 1, HapticEffect.Zipline);
                                 hapticCooldown.Restart();
                                 wasZipline = true;
@@ -492,25 +502,25 @@ internal class Program
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.KneeFinisher);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2341 && hapticCooldown.ElapsedMilliseconds >= 1000) // Knee finisher
+                        else if (weapon == 2341 && hapticCooldown.ElapsedMilliseconds >= 2000) // Knee finisher
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.KneeFinisher);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2340 && hapticCooldown.ElapsedMilliseconds >= 1000) // Elbow finisher
+                        else if (weapon == 2340 && hapticCooldown.ElapsedMilliseconds >= 2000) // Elbow finisher
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.ElbowFinisher);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2342 && hapticCooldown.ElapsedMilliseconds >= 1000) // Neck grab finisher
+                        else if (weapon == 2342 && hapticCooldown.ElapsedMilliseconds >= 2000) // Neck grab finisher
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.NeckGrabFinisher);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2343 && hapticCooldown.ElapsedMilliseconds >= 1000) // Neck finisher
+                        else if (weapon == 2343 && hapticCooldown.ElapsedMilliseconds >= 2000) // Neck finisher
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.NeckFinisher);
@@ -552,45 +562,50 @@ internal class Program
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.Medkit);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2460 && hapticCooldown.ElapsedMilliseconds >= 300 || weapon == 2457 && hapticCooldown.ElapsedMilliseconds >= 300 || weapon == 2607 && hapticCooldown.ElapsedMilliseconds >= 300) // Climb pipe right hand
+                        else if (weapon == 2460 && hapticCooldown.ElapsedMilliseconds >= 200 || weapon == 2457 && hapticCooldown.ElapsedMilliseconds >= 200 || weapon == 2607 && hapticCooldown.ElapsedMilliseconds >= 200) // Climb pipe right hand
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(0, 1, HapticEffect.ClimbPipeRight);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2459 && hapticCooldown.ElapsedMilliseconds >= 300 || weapon == 2458 && hapticCooldown.ElapsedMilliseconds >= 300 || weapon == 2610 && hapticCooldown.ElapsedMilliseconds >= 300) // Climb pipe left hand
+                        else if (weapon == 2459 && hapticCooldown.ElapsedMilliseconds >= 200 || weapon == 2458 && hapticCooldown.ElapsedMilliseconds >= 200 || weapon == 2610 && hapticCooldown.ElapsedMilliseconds >= 200) // Climb pipe left hand
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(1, 0, HapticEffect.ClimbPipeLeft);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2475 && hapticCooldown.ElapsedMilliseconds >= 500 || weapon == 2422 && hapticCooldown.ElapsedMilliseconds >= 500) // Slide down a pipe
+                        else if (weapon == 2475 && hapticCooldown.ElapsedMilliseconds >= 500 || weapon == 2422 && hapticCooldown.ElapsedMilliseconds >= 1500) // Slide down a pipe
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.Slide);
                             hapticCooldown.Restart();
                         }
                         else if (weapon == 2473 && hapticCooldown.ElapsedMilliseconds >= 600) // Rotating left on a pipe
                         {
-                            controllerAPI.speakerVolume = SpeakerVolume.Off;
-                            controllerAPI.PlayHaptics(1, 0, HapticEffect.Slide);
-                            hapticCooldown.Restart();
+                            //controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            //controllerAPI.PlayHaptics(1, 0, HapticEffect.Slide);
+                            //hapticCooldown.Restart();
                         }
                         else if (weapon == 2474 && hapticCooldown.ElapsedMilliseconds >= 600) // Rotating right on a pipe
                         {
-                            controllerAPI.speakerVolume = SpeakerVolume.Off;
-                            controllerAPI.PlayHaptics(0, 1, HapticEffect.Slide);
-                            hapticCooldown.Restart();
+                            //controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            //controllerAPI.PlayHaptics(0, 1, HapticEffect.Slide);
+                            //hapticCooldown.Restart();
                         }
                         else if (weapon == 2408 && hapticCooldown.ElapsedMilliseconds >= 200 || weapon == 2406 && hapticCooldown.ElapsedMilliseconds >= 200) // Climbing on ladder left
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(1, 0, HapticEffect.ClimbLadderLeft);
                             hapticCooldown.Restart();
                         }
                         else if (weapon == 2409 && hapticCooldown.ElapsedMilliseconds >= 200 || weapon == 2407 && hapticCooldown.ElapsedMilliseconds >= 200) // Climbing on ladder right
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(0, 1, HapticEffect.ClimbLadderRight);
                             hapticCooldown.Restart();
                         }
@@ -615,16 +630,19 @@ internal class Program
                         else if (weapon == 2284 && hapticCooldown.ElapsedMilliseconds >= 1500) // Rolling
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.SafetyRoll);
                             hapticCooldown.Restart();
                         }
                         else if (weapon == 1322 && hapticCooldown.ElapsedMilliseconds >= 2000) // Using remote control
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Very_Loud;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.Remote);
+                            controllerAPI.PlaySpeaker(HapticEffect.Remote);
                             hapticCooldown.Restart();
                         }
-                        else if (weapon == 2907 && hapticCooldown.ElapsedMilliseconds >= 4000) // Using remote control
+                        else if (weapon == 2907 && hapticCooldown.ElapsedMilliseconds >= 4000) // Opening chest
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.OpeningChest);
@@ -633,18 +651,21 @@ internal class Program
                         else if (weapon == 2611 && hapticCooldown.ElapsedMilliseconds >= 300) // Sliding
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.Slide);
                             hapticCooldown.Restart();
                         }
                         else if (weapon == 2048 && hapticCooldown.ElapsedMilliseconds >= 800) // Grappling hook start
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Moderate;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.GrapplingHookStart);
                             hapticCooldown.Restart();
                         }
                         else if (weapon == 2047 && hapticCooldown.ElapsedMilliseconds >= 1000) // Grappling hook loop
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Moderate;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.GrapplingHookEnd);
                             hapticCooldown.Restart();
                         }
@@ -657,6 +678,7 @@ internal class Program
                         else if (weapon == 2256 && hapticCooldown.ElapsedMilliseconds >= 300 || weapon == 2257 && hapticCooldown.ElapsedMilliseconds >= 300) // Looting
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             controllerAPI.PlayHaptics(1, 1, HapticEffect.Looting);
                             hapticCooldown.Restart();
                         }
@@ -694,7 +716,7 @@ internal class Program
                             }
                             hapticCooldown.Restart();
                         }
-                        else if (weapon >= 2500 && weapon <= 2560 && hapticCooldown.ElapsedMilliseconds >= 300) // Common climbs
+                        else if (weapon >= 2500 && weapon <= 2560 && hapticCooldown.ElapsedMilliseconds >= 1000) // Common climbs
                         {
                             controllerAPI.speakerVolume = SpeakerVolume.Off;
                             switch (rand.Next(0, 3))
@@ -729,6 +751,73 @@ internal class Program
                             }
                             hapticCooldown.Restart();
                         }
+                        else if (weapon == 2319 && hapticCooldown.ElapsedMilliseconds >= 2000) // neck snap from behind
+                        {
+                            controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.PlayHaptics(1, 1, HapticEffect.NeckFinisher);
+                            hapticCooldown.Restart();
+                        }
+                        else if (weapon == 1210 && hapticCooldown.ElapsedMilliseconds >= 2000) // neck snap from behind
+                        {
+                            controllerAPI.speakerVolume = SpeakerVolume.Off;
+                            controllerAPI.PlayHaptics(1, 1, HapticEffect.HeavyBodyCollision);
+                            hapticCooldown.Restart();
+                        }
+                        else if (weapon == 2440 || weapon == 2438) // grabbed by biter right
+                        {
+                            if(hapticCooldown.ElapsedMilliseconds >= 2000)
+                            {
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                controllerAPI.PlayHaptics(0, 1, HapticEffect.ZombieBiteLoopRight);
+                                hapticCooldown.Restart();
+                            }
+
+                        }
+                        else if (weapon == 2441) // grabbed by biter right
+                        {
+                            if (hapticCooldown.ElapsedMilliseconds >= 2000)
+                            {
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                controllerAPI.PlayHaptics(1, 0, HapticEffect.ZombieBiteLoopleft);
+                                hapticCooldown.Restart();
+                            }
+
+                        }
+                        else if (weapon == 2328) // grabbed by biter left
+                        {
+                            if (hapticCooldown.ElapsedMilliseconds >= 2000)
+                            {
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                controllerAPI.PlayHaptics(1, 0, HapticEffect.ZombieBiteLoopleft);
+                                hapticCooldown.Restart();
+                            }
+
+                        }
+                        else if (weapon == 2327) // broke out of biter grab left
+                        {
+                            if (hapticCooldown.ElapsedMilliseconds >= 2000)
+                            {
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                controllerAPI.PlayHaptics(1, 0, HapticEffect.ZombieBiteBreak);
+                                hapticCooldown.Restart();
+                            }
+
+                        }
+                        else if (weapon == 2439) // grabbed by biter front
+                        {
+                            if (hapticCooldown.ElapsedMilliseconds >= 2000)
+                            {
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                controllerAPI.PlayHaptics(1, 1, HapticEffect.ZombieBiteLoopRight);
+                                hapticCooldown.Restart();
+                            }
+
+                        }
                         else
                         {
                             controllerAPI.triggerThreshold = 0;
@@ -741,7 +830,7 @@ internal class Program
                             if (wasZipline)
                             {
                                 wasZipline = false;
-                                controllerAPI.hapticFeedback.forceStop = true;
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
                             }
                         }
 
@@ -751,14 +840,16 @@ internal class Program
                         {
                             if (!flashlight && controllerAPI.state.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
                             {
-                                controllerAPI.speakerVolume = SpeakerVolume.Moderate;
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Loud;
                                 controllerAPI.PlayHaptics(0, 1, HapticEffect.FlashlightOn);
                                 flashlight = true;
                                 hapticCooldown.Restart();
                             }
                             else if (flashlight && controllerAPI.state.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
                             {
-                                controllerAPI.speakerVolume = SpeakerVolume.Moderate;
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Loud;
                                 controllerAPI.PlayHaptics(0, 1, HapticEffect.FlashlightOff);
                                 flashlight = false;
                                 hapticCooldown.Restart();
@@ -766,7 +857,8 @@ internal class Program
 
                             if (controllerAPI.state.L2Btn && hapticCooldown.ElapsedMilliseconds > 600)
                             {
-                                controllerAPI.speakerVolume = SpeakerVolume.Moderate;
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Loud;
                                 controllerAPI.PlayHaptics(0, 1, HapticEffect.UVFlashlightFailed);
                                 flashlight = true;
                                 hapticCooldown.Restart();
@@ -799,28 +891,6 @@ internal class Program
                         // Change RGB colors to purple
                         else if (game.isUVOn())
                         {
-                            if (!controllerAPI.state.L2Btn)
-                            {
-                                uvWorking = false;
-                            }
-
-                            if (controllerAPI.state.L2Btn)
-                            {
-                                if (uvWorking == false && hapticCooldown.ElapsedMilliseconds >= 150)
-                                {
-                                    controllerAPI.speakerVolume = SpeakerVolume.Loud;
-                                    controllerAPI.PlayHaptics(0, 1, HapticEffect.UVFlashlightStart);
-                                    uvWorking = true;
-                                    hapticCooldown.Restart();
-                                }
-                                else if (uvWorking == true && !controllerAPI.hapticFeedback.Playing && hapticCooldown.ElapsedMilliseconds >= 1300)
-                                {
-                                    controllerAPI.speakerVolume = SpeakerVolume.Loud;
-                                    controllerAPI.PlayHaptics(0, 1, HapticEffect.UVFlashlightWorking);
-                                    hapticCooldown.Restart();
-                                }
-                            }
-
                             controllerAPI.R = 60;
                             controllerAPI.G = 0;
                             controllerAPI.B = 255;
@@ -834,12 +904,14 @@ internal class Program
                                 {
                                     controllerAPI.speakerVolume = SpeakerVolume.Moderate;
                                     controllerAPI.PlayHaptics(0, 1, HapticEffect.FlashlightOn);
+                                    controllerAPI.PlaySpeaker(HapticEffect.FlashlightOn);
                                     flashlight = true;
                                 }
                                 else
                                 {
                                     controllerAPI.speakerVolume = SpeakerVolume.Moderate;
                                     controllerAPI.PlayHaptics(0, 1, HapticEffect.FlashlightOff);
+                                    controllerAPI.PlaySpeaker(HapticEffect.FlashlightOn);
                                     flashlight = false;
                                 }
                                 hapticCooldown.Restart();
@@ -859,6 +931,92 @@ internal class Program
                             else if (hp < 175 && hp > 75) { controllerAPI.R = 255; controllerAPI.G = 255; controllerAPI.B = 0; }
                             else if (hp < 75 && hp != 0) { controllerAPI.R = 255; controllerAPI.G = 255; controllerAPI.B = 0; }
                             else { controllerAPI.R = 0; controllerAPI.G = 0; controllerAPI.B = 0; }
+                        }
+
+                        if (controllerAPI.state.L2Btn)
+                        {
+                            footstepsCooldown.Restart();
+                            hapticCooldown.Restart();
+                        }
+
+                        if (walkSpeed > 2.5 && walkSpeed < 5.7)
+                        {
+
+                            if (Lfoot == 1)
+                            {
+                                Lfoot = 0;
+                                Rfoot = 1;
+                            }
+                            else
+                            {
+                                Lfoot = 1;
+                                Rfoot = 0;
+                            }
+
+                            if (footstepsCooldown.ElapsedMilliseconds >= 350 && hapticCooldown.ElapsedMilliseconds >= 500)
+                            {
+                                new Task(() => {
+                                    controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                    controllerAPI.PlayHaptics(Lfoot, Rfoot, HapticEffect.Footstep);
+                                }).Start();
+                                footstepsCooldown.Restart();
+                            }
+
+
+                        }
+                        else if (walkSpeed >= 5.71)
+                        {
+
+                            if (Lfoot == 1)
+                            {
+                                Lfoot = 0;
+                                Rfoot = 1;
+                            }
+                            else
+                            {
+                                Lfoot = 1;
+                                Rfoot = 0;
+                            }
+
+                            if (footstepsCooldown.ElapsedMilliseconds >= 170 && hapticCooldown.ElapsedMilliseconds >= 500)
+                            {
+                                new Task(() => {
+                                    controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                    controllerAPI.PlayHaptics(Lfoot, Rfoot, HapticEffect.Footstep);
+                                }).Start();
+                                footstepsCooldown.Restart();
+                            }
+
+                        }
+                        else if (walkSpeed <= -1)
+                        {
+
+                            if (Lfoot == 1)
+                            {
+                                Lfoot = 0;
+                                Rfoot = 1;
+                            }
+                            else
+                            {
+                                Lfoot = 1;
+                                Rfoot = 0;
+                            }
+
+                            if (footstepsCooldown.ElapsedMilliseconds >= 300 && hapticCooldown.ElapsedMilliseconds >= 500)
+                            {
+                                new Task(() => {
+                                    controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                    controllerAPI.PlayHaptics(Lfoot, Rfoot, HapticEffect.Footstep);
+                                }).Start();
+                                footstepsCooldown.Restart();
+                            }
+
+                        }
+
+                        if (controllerAPI.state.R1 || controllerAPI.state.L2Btn && footstepsCooldown.ElapsedMilliseconds >= 500)
+                        {
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                            footstepsCooldown.Restart();
                         }
 
                         switch (game.getChaseLevel())
@@ -888,15 +1046,15 @@ internal class Program
                             wasZipline = false;
                         }
 
-                        controllerAPI.speakerVolume = SpeakerVolume.Moderate;
                         if (controllerAPI.state.LX >= 240 ||
                             controllerAPI.state.LX <= 10 || controllerAPI.state.LY >= 240 || controllerAPI.state.LY <= 10
                             || controllerAPI.state.DpadDown || controllerAPI.state.DpadLeft || controllerAPI.state.DpadRight || controllerAPI.state.DpadUp || controllerAPI.state.touchBtn)
                         {
-
                             if (hapticCooldown.ElapsedMilliseconds > 300)
                             {
-                                controllerAPI.PlayHaptics(1, 1, HapticEffect.UIchangeSelection);
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                controllerAPI.PlayHaptics(1, 1, HapticEffect.FlashlightOn);
                                 hapticCooldown.Restart();
                             }
                         }
@@ -904,7 +1062,9 @@ internal class Program
                         {
                             if (hapticCooldown.ElapsedMilliseconds > 300)
                             {
-                                controllerAPI.PlayHaptics(1, 1, HapticEffect.UIselect2);
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                controllerAPI.PlayHaptics(1, 1, HapticEffect.FlashlightOn);
                                 hapticCooldown.Restart();
                             }
                         }
@@ -912,7 +1072,9 @@ internal class Program
                         {
                             if (hapticCooldown.ElapsedMilliseconds > 300)
                             {
-                                controllerAPI.PlayHaptics(1, 1, HapticEffect.UIselect1);
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Off;
+                                controllerAPI.PlayHaptics(1, 1, HapticEffect.FlashlightOff);
                                 hapticCooldown.Restart();
                             }
                         }

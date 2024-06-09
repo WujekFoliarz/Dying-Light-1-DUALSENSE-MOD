@@ -7,11 +7,10 @@ namespace DL1_Dualsense
         private Swed swed = new Swed("DyingLightGame");
         private IntPtr engineModuleBase;
         private IntPtr gameModuleBase;
-        private int lastUV = 0;
 
         public Game()
         {
-            engineModuleBase = swed.GetModuleBase("engine_x64_rwdi.dll"); 
+            engineModuleBase = swed.GetModuleBase("engine_x64_rwdi.dll");
             gameModuleBase = swed.GetModuleBase("gamedll_x64_rwdi.dll");
         }
 
@@ -54,7 +53,7 @@ namespace DL1_Dualsense
             short uv = swed.ReadShort(swed.ReadPointer(gameModuleBase, offsets: new[] { 0x01C15268, 0x780, 0x338, 0x1068, 0x90, 0x16A0, 0x10, 0x10, 0x1A8 }) + 0x54);  // <--- for epic games store
             short uv2 = swed.ReadShort(swed.ReadPointer(engineModuleBase, offsets: new[] { 0x00A0D1E0, 0x4E8, 0xB8, 0x60, 0x10, 0x10, 0x10, 0x20 }) + 0x3C);  // <--- for steam
             if (uv == 256 || uv2 == 256)
-                return true;         
+                return true;
             else
                 return false;
         }
@@ -88,6 +87,19 @@ namespace DL1_Dualsense
                     swed.WriteShort(swed.ReadPointer(gameModuleBase, 0x01C152F8, 0x50) + 0x40, 0);
                     break;
             }
+        }
+
+        public float getPlayerWalkSpeed()
+        {
+            float speed1 = swed.ReadFloat(swed.ReadPointer(gameModuleBase, 0x01C15308, 0x390, 0x118, 0x38, 0xDE0, 0x230) + 0x44);
+            float speed2 = swed.ReadFloat(swed.ReadPointer(gameModuleBase, 0x01D0E8E0, 0x18, 0xF8) + 0x44);
+
+            if (speed1 != 0)
+                return speed1;
+            else if (speed2 != 0)
+                return speed2;
+            else
+                return 0;
         }
 
         public int getWeaponType()

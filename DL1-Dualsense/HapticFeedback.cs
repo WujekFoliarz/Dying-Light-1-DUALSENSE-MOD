@@ -9,8 +9,12 @@ namespace DL1_Dualsense
         public bool initialized = false;
         public bool forceStop = false;
         public bool Playing = false;
-        public HapticEffect hapticEffect = new HapticEffect();
-
+        public BufferedWaveProvider bufferedWaveProvider = new BufferedWaveProvider(new WaveFormat(48000, 32, 1));
+        public BufferedWaveProvider bufferedWaveProviderHaptics = new BufferedWaveProvider(new WaveFormat(48000, 32, 1));
+        public string folder = @"haptics\";
+        public float leftHapticVolume = 1.0f;
+        public float rightHapticVolume = 1.0f;
+        private WasapiOut playbackStream;
 
         public HapticFeedback()
         {
@@ -29,43 +33,25 @@ namespace DL1_Dualsense
                 return;
             }
 
+
+            bufferedWaveProvider.BufferLength = 5000000; // 5Mb buffer
+            playbackStream = new WasapiOut(device, AudioClientShareMode.Shared, false, 10);
+            MultiplexingWaveProvider multiplexingWaveProvider = new MultiplexingWaveProvider(new BufferedWaveProvider[] {
+                bufferedWaveProvider,
+                bufferedWaveProviderHaptics
+            }, 4);
+
+            multiplexingWaveProvider.ConnectInputToOutput(0, 0);
+            multiplexingWaveProvider.ConnectInputToOutput(0, 1);
+            multiplexingWaveProvider.ConnectInputToOutput(1, 2);
+            multiplexingWaveProvider.ConnectInputToOutput(1, 3);
+            playbackStream.Init(multiplexingWaveProvider);
+            playbackStream.AudioStreamVolume.SetChannelVolume(2, leftHapticVolume);
+            playbackStream.AudioStreamVolume.SetChannelVolume(3, rightHapticVolume);
+            playbackStream.Play();
             initialized = true;
         }
 
-        public void PlayHaptics(float leftHapticVolume, float rightHapticVolume)
-        {
-            try
-            {
-                if (hapticEffect.currentEffect != string.Empty)
-                {
-                    forceStop = false;
-                    WasapiOut playbackStream = new WasapiOut(device, AudioClientShareMode.Shared, false, 100);
-                    WaveFileReader waveProvider = new WaveFileReader(folder + hapticEffect.currentEffect);
-                    MultiplexingWaveProvider multiplexingWaveProvider = new MultiplexingWaveProvider(new IWaveProvider[] { waveProvider }, 4);
-
-                    multiplexingWaveProvider.ConnectInputToOutput(0, 0);
-                    multiplexingWaveProvider.ConnectInputToOutput(0, 1);
-                    multiplexingWaveProvider.ConnectInputToOutput(0, 2);
-                    multiplexingWaveProvider.ConnectInputToOutput(0, 3);
-                    playbackStream.Init(multiplexingWaveProvider);
-                    playbackStream.AudioStreamVolume.SetChannelVolume(2, leftHapticVolume);
-                    playbackStream.AudioStreamVolume.SetChannelVolume(3, rightHapticVolume);
-                    playbackStream.Play();
-                    Playing = true;
-                    while (forceStop == false && playbackStream.PlaybackState == PlaybackState.Playing) { Thread.Sleep(5); }
-                    Playing = false;
-                    playbackStream.Dispose();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-
-
-        }
-
-        private static string folder = @"haptics\";
         public void Dispose()
         {
             device.AudioClient.Dispose();
@@ -172,5 +158,13 @@ namespace DL1_Dualsense
         public static readonly string PistolShot = "beretta_shot_00_0.wav";
         public static readonly string RevolverShot = "rmngtn_shot_00_0.wav";
         public static readonly string ShotgunShot = "shotgunc_shot_00_0.wav";
+        public static readonly string Footstep = "step_default_concrete_right_02_0.wav";
+        public static readonly string ZombieBiteLoopleft = "zombie_walker_grab_bite_long_left_0.wav";
+        public static readonly string ZombieBiteLoopRight = "zombie_walker_grab_bite_long_right_0.wav";
+        public static readonly string ZombieBiteBreak = "zombie_walker_grab_bite_break_00_0.wav";
+        public static readonly string HeavyBodyCollision = "body_zombie_collision_ground_heavy_03_0.wav";
+        public static readonly string Hit1 = "hit_fists_00_0.wav";
+        public static readonly string Hit2 = "hit_fists_01_0.wav";
+        public static readonly string Hit3 = "hit_fists_02_0.wav";
     }
 }

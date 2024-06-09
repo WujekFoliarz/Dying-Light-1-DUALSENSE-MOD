@@ -148,20 +148,41 @@ namespace DL1_Dualsense
         bool uvWorking = false;
         bool uvSoundPlaying = false;
         Stopwatch hapticCooldown = new Stopwatch();
-        public void handleHaptics()
-        {
-
-        }
 
         public void PlayHaptics(float leftHapticVolume, float rightHapticVolume, string hapticEffect)
         {
-            new Task(() =>
+            try
             {
-                hapticFeedback.hapticEffect.SetEffect(hapticEffect);
+                hapticFeedback.leftHapticVolume = leftHapticVolume;
+                hapticFeedback.rightHapticVolume = rightHapticVolume;
+                byte[] file = File.ReadAllBytes(hapticFeedback.folder + hapticEffect);
+                hapticFeedback.bufferedWaveProviderHaptics.AddSamples(file, 0, file.Length);
 
-                hapticFeedback.PlayHaptics(leftHapticVolume, rightHapticVolume);
+                Console.WriteLine("playing: " + hapticFeedback.folder + hapticEffect);
+                file = null;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                hapticFeedback.bufferedWaveProvider.ClearBuffer();
+            }
+        }
 
-            }).Start();
+        public void PlaySpeaker(string hapticEffect)
+        {
+            try
+            {
+                byte[] file = File.ReadAllBytes(hapticFeedback.folder + hapticEffect);
+                hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
+
+                Console.WriteLine("playing: " + hapticFeedback.folder + hapticEffect);
+                file = null;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                hapticFeedback.bufferedWaveProvider.ClearBuffer();
+            }
         }
 
         public void writeToController()
