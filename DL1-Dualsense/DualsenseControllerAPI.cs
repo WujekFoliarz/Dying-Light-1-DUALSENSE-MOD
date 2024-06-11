@@ -157,8 +157,6 @@ namespace DL1_Dualsense
                 hapticFeedback.rightHapticVolume = rightHapticVolume;
                 byte[] file = File.ReadAllBytes(hapticFeedback.folder + hapticEffect);
                 hapticFeedback.bufferedWaveProviderHaptics.AddSamples(file, 0, file.Length);
-
-                Console.WriteLine("playing: " + hapticFeedback.folder + hapticEffect);
                 file = null;
             }
             catch (Exception e)
@@ -174,8 +172,6 @@ namespace DL1_Dualsense
             {
                 byte[] file = File.ReadAllBytes(hapticFeedback.folder + hapticEffect);
                 hapticFeedback.bufferedWaveProvider.AddSamples(file, 0, file.Length);
-
-                Console.WriteLine("playing: " + hapticFeedback.folder + hapticEffect);
                 file = null;
             }
             catch (Exception e)
@@ -369,7 +365,7 @@ namespace DL1_Dualsense
                 outReport[4] = (byte)r_rotor; // left low freq motor 0-255
                 //outReport[5] = 0; <-- headset volume
                 outReport[6] = (byte)speakerVolume; // <-- speaker volume, needs to be changed on some configurations where naudio wont let you change channel volume, 0x7C is the loudest setting
-                //outReport[7] = 0; <-- this is mic volume i think
+                outReport[7] = 0x4C; // <-- mic volume
                 outReport[8] = 0x7C; // <-- no idea what that does
                 outReport[9] = (byte)MicrophoneLED; //microphone led
                 outReport[10] = microphoneLED ? (byte)0x00 : (byte)0x10;

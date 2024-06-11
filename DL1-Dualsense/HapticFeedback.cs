@@ -166,5 +166,6 @@ namespace DL1_Dualsense
         public static readonly string Hit1 = "hit_fists_00_0.wav";
         public static readonly string Hit2 = "hit_fists_01_0.wav";
         public static readonly string Hit3 = "hit_fists_02_0.wav";
+        public static readonly string StepOnWood = "step_wood_right_01_0.wav";
     }
 }
