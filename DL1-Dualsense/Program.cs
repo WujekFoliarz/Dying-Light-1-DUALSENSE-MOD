@@ -4,6 +4,8 @@ using System.Diagnostics;
 internal class Program
 {
     private static Game game = new Game();
+    public static bool airDrop = false;
+    public static bool meleeHit = false;
 
     private static void Main(string[] args)
     {
@@ -27,6 +29,7 @@ internal class Program
         float walkSpeed = 0;
         int Lfoot = 1;
         int Rfoot = 0;
+        bool firstTimeAirdrop = true;
 
         if (!apiRunning)
         {
@@ -867,21 +870,97 @@ internal class Program
                             }
                         }
 
-                        if (game.isUVRecharging())
+                        if (meleeHit && hapticCooldown.ElapsedMilliseconds >= 350)
                         {
+                            controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                            controllerAPI.speakerVolume = SpeakerVolume.Moderate;
+
+                            switch (rand.Next(0, 3))
+                            {
+                                case 0:
+                                    controllerAPI.PlayHaptics(1, 1, HapticEffect.Hit1);
+                                    break;
+                                case 1:
+                                    controllerAPI.PlayHaptics(1, 1, HapticEffect.Hit2);
+                                    break;
+                                case 2:
+                                    controllerAPI.PlayHaptics(1, 1, HapticEffect.Hit3);
+                                    break;
+                            }
+
+                            hapticCooldown.Restart();
+                        }
+
+                        if (airDrop)
+                        {
+                            if (firstTimeAirdrop)
+                            {
+                                controllerAPI.hapticFeedback.bufferedWaveProvider.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Loud;
+                                hapticCooldown.Restart();
+                                controllerAPI.PlayHaptics(1, 1, HapticEffect.ElectronicBeep);
+                                controllerAPI.PlaySpeaker(HapticEffect.ElectronicBeep);
+                                firstTimeAirdrop = false;
+                            }
+
                             if (!flashlight && controllerAPI.state.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
                             {
                                 controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
-                                controllerAPI.speakerVolume = SpeakerVolume.Loud;
+                                controllerAPI.speakerVolume = SpeakerVolume.Moderate;
                                 controllerAPI.PlayHaptics(0, 1, HapticEffect.FlashlightOn);
+                                controllerAPI.PlaySpeaker(HapticEffect.FlashlightOn);
                                 flashlight = true;
                                 hapticCooldown.Restart();
                             }
                             else if (flashlight && controllerAPI.state.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
                             {
                                 controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
-                                controllerAPI.speakerVolume = SpeakerVolume.Loud;
+                                controllerAPI.speakerVolume = SpeakerVolume.Moderate;
                                 controllerAPI.PlayHaptics(0, 1, HapticEffect.FlashlightOff);
+                                controllerAPI.PlaySpeaker(HapticEffect.FlashlightOff);
+                                flashlight = false;
+                                hapticCooldown.Restart();
+                            }
+
+                            if (uvAnimationSide == false && uvAnimationCycleB >= 255)
+                            {
+                                uvAnimationSide = true;
+                            }
+                            else if (uvAnimationSide == true && uvAnimationCycleB <= 0)
+                            {
+                                uvAnimationSide = false;
+                            }
+
+                            if (uvAnimationSide == false)
+                            {
+                                uvAnimationCycleB = Math.Min(uvAnimationCycleB + 10, 255);
+                            }
+                            else
+                            {
+                                uvAnimationCycleB = Math.Max(uvAnimationCycleB - 8, 0);
+                            }
+
+                            controllerAPI.R = 0;
+                            controllerAPI.G = 0;
+                            controllerAPI.B = uvAnimationCycleB;
+                        }
+                        else if (game.isUVRecharging())
+                        {
+                            if (!flashlight && controllerAPI.state.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
+                            {
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Moderate;
+                                controllerAPI.PlayHaptics(0, 1, HapticEffect.FlashlightOn);
+                                controllerAPI.PlaySpeaker(HapticEffect.FlashlightOn);
+                                flashlight = true;
+                                hapticCooldown.Restart();
+                            }
+                            else if (flashlight && controllerAPI.state.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
+                            {
+                                controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
+                                controllerAPI.speakerVolume = SpeakerVolume.Moderate;
+                                controllerAPI.PlayHaptics(0, 1, HapticEffect.FlashlightOff);
+                                controllerAPI.PlaySpeaker(HapticEffect.FlashlightOff);
                                 flashlight = false;
                                 hapticCooldown.Restart();
                             }
@@ -889,7 +968,7 @@ internal class Program
                             if (controllerAPI.state.L2Btn && hapticCooldown.ElapsedMilliseconds > 600)
                             {
                                 controllerAPI.hapticFeedback.bufferedWaveProviderHaptics.ClearBuffer();
-                                controllerAPI.speakerVolume = SpeakerVolume.Loud;
+                                controllerAPI.speakerVolume = SpeakerVolume.Moderate;
                                 controllerAPI.PlayHaptics(0, 1, HapticEffect.UVFlashlightFailed);
                                 flashlight = true;
                                 hapticCooldown.Restart();
@@ -957,6 +1036,7 @@ internal class Program
                         else
                         {
                             firstTime = true;
+                            firstTimeAirdrop = true;
                             // Change RGB colors according to HP
                             if (hp >= 175) { controllerAPI.R = 0; controllerAPI.G = 255; controllerAPI.B = 0; }
                             else if (hp < 175 && hp > 75) { controllerAPI.R = 255; controllerAPI.G = 255; controllerAPI.B = 0; }

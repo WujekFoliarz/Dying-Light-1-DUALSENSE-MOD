@@ -347,10 +347,33 @@ namespace DL1_Dualsense
             r_rotor = e.LargeMotor;
         }
 
+        Stopwatch watch = new Stopwatch();
         private void Dualshock4_FeedbackReceived(object sender, DualShock4FeedbackReceivedEventArgs e)
         {
             l_rotor = e.SmallMotor;
             r_rotor = e.LargeMotor;
+
+            //Console.WriteLine(l_rotor + " " + r_rotor);
+
+            if (l_rotor == 0 && r_rotor == 2 || l_rotor == 38 && r_rotor == 25)
+            {
+                if(watch.ElapsedMilliseconds <= 21000)
+                {
+                    Program.airDrop = true;
+                    watch.Start();
+                }
+            }
+
+            if (l_rotor == 153 && r_rotor == 153 || l_rotor == 168 && r_rotor == 168)
+                Program.meleeHit = true;
+            else
+                Program.meleeHit = false;
+
+            if(watch.ElapsedMilliseconds >= 21000)
+            {
+                Program.airDrop = false;
+                watch.Reset();
+            }
         }
 
         byte[] PrepareReport(int r, int g, int b, TriggerModes LeftTriggerMode, TriggerModes RightTriggerMode, int[] LeftTriggerForces, int[] RightTriggerForces, PlayerID playerLED, Brightness ledBrightness, int MicrophoneLED)
@@ -365,7 +388,7 @@ namespace DL1_Dualsense
                 outReport[4] = (byte)r_rotor; // left low freq motor 0-255
                 //outReport[5] = 0; <-- headset volume
                 outReport[6] = (byte)speakerVolume; // <-- speaker volume, needs to be changed on some configurations where naudio wont let you change channel volume, 0x7C is the loudest setting
-                outReport[7] = 0x4C; // <-- mic volume
+                outReport[7] = 0x2C; // <-- mic volume
                 outReport[8] = 0x7C; // <-- no idea what that does
                 outReport[9] = (byte)MicrophoneLED; //microphone led
                 outReport[10] = microphoneLED ? (byte)0x00 : (byte)0x10;

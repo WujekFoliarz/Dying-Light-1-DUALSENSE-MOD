@@ -35,7 +35,9 @@ namespace DL1_Dualsense
 
 
             bufferedWaveProvider.BufferLength = 5000000; // 5Mb buffer
-            playbackStream = new WasapiOut(device, AudioClientShareMode.Shared, false, 10);
+            bufferedWaveProvider.ReadFully = true;
+            playbackStream = new WasapiOut(device, AudioClientShareMode.Shared, true, 10);
+
             MultiplexingWaveProvider multiplexingWaveProvider = new MultiplexingWaveProvider(new BufferedWaveProvider[] {
                 bufferedWaveProvider,
                 bufferedWaveProviderHaptics
@@ -167,5 +169,6 @@ namespace DL1_Dualsense
         public static readonly string Hit2 = "hit_fists_01_0.wav";
         public static readonly string Hit3 = "hit_fists_02_0.wav";
         public static readonly string StepOnWood = "step_wood_right_01_0.wav";
+        public static readonly string ElectronicBeep = "player_collar_beep_end_0.wav";
     }
 }
