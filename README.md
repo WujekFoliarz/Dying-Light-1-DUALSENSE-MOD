@@ -19,4 +19,5 @@ You can add me on discord - wujek_foliarz
 ---
 
 dsound.dll hook by https://github.com/12brendon34/DLML/tree/main
+
 Dualsense API - https://github.com/WujekFoliarz/Wujek-Dualsense-API
