@@ -6,7 +6,7 @@
 
 How to use (1.4v+):
 - Download and install ViGEMbus (Windows restart required): [Click here (Download "ViGEmBus_1.22.0_x64_x86_arm64.exe")](https://github.com/nefarius/ViGEmBus/releases/tag/v1.22.0)
-- Download and install .NET 8.0: [Click here](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-8.0.4-windows-x64-installer)
+- Download and install .NET 8.0.6: [Click here](https://aka.ms/dotnet-core-applaunch?framework=Microsoft.WindowsDesktop.App&framework_version=8.0.0&arch=x64&rid=win-x64&os=win10)
 - Paste the files in game directory
 - Disable Steam Input for Dying Light
 
