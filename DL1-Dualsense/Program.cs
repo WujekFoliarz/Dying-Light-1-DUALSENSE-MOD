@@ -39,7 +39,12 @@ internal class Program
         bool firstTimeAirdrop = true;
 
         dualsense.Start();
-        dualsense.SetVibrationType(Vibrations.VibrationType.Haptic_Feedback);
+
+        if(dualsense.ConnectionType == ConnectionType.USB)
+            dualsense.SetVibrationType(Vibrations.VibrationType.Haptic_Feedback);
+        else if (dualsense.ConnectionType == ConnectionType.BT)
+            dualsense.SetVibrationType(Vibrations.VibrationType.Standard_Rumble);
+
         dualshock4.Connect();
         dualshock4.FeedbackReceived += Dualshock4_FeedbackReceived;
 
@@ -133,7 +138,7 @@ internal class Program
                             weapon = game.getWeaponType();
                             walkSpeed = game.getPlayerWalkSpeed();
 
-                            Console.WriteLine(weapon);
+                            //Console.WriteLine(weapon);
                             if (weapon == 2058 || weapon >= 2024 && weapon <= 2029) // 1H sharp weapon (machete etc.)
                             {
                                 triggerThreshold = 120;
@@ -849,8 +854,8 @@ internal class Program
                             else
                             {
                                 triggerThreshold = 0;
-                                dualsense.SetLeftTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
-                                dualsense.SetRightTrigger(TriggerType.TriggerModes.Rigid_B, 0, 0, 0, 0, 0, 0, 0);
+                                dualsense.SetLeftTrigger(TriggerType.TriggerModes.Off, 0, 0, 0, 0, 0, 0, 0);
+                                dualsense.SetRightTrigger(TriggerType.TriggerModes.Off, 0, 0, 0, 0, 0, 0, 0);
                             }
 
                             if (weapon <= 2730 || weapon >= 2738)
@@ -1207,6 +1212,8 @@ internal class Program
     {
         int l_rotor = e.SmallMotor;
         int r_rotor = e.LargeMotor;
+
+        dualsense.SetStandardRumble((byte)l_rotor, (byte)r_rotor);
 
         //Console.WriteLine(l_rotor + " " + r_rotor);
 
