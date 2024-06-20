@@ -99,9 +99,11 @@ internal class Program
         bool firstTime = true;
         Stopwatch hapticCooldown = new Stopwatch();
         Stopwatch footstepsCooldown = new Stopwatch();
+        Stopwatch lightbarAnimationCooldown = new Stopwatch();
         Random rand = new Random();
         hapticCooldown.Start();
         footstepsCooldown.Start();
+        lightbarAnimationCooldown.Start();
 
         new Thread(() =>
         {
@@ -891,8 +893,6 @@ internal class Program
                             {
                                 if (firstTimeAirdrop)
                                 {
-
-
                                     hapticCooldown.Restart();
                                     dualsense.PlayHaptics(HapticEffect.ElectronicBeep, 1.0f, 1.0f, 1.0f, true);
                                     firstTimeAirdrop = false;
@@ -914,25 +914,18 @@ internal class Program
                                     hapticCooldown.Restart();
                                 }
 
-                                if (uvAnimationSide == false && uvAnimationCycleB >= 255)
+                                if (uvAnimationSide == false && lightbarAnimationCooldown.ElapsedMilliseconds >= 350)
                                 {
                                     uvAnimationSide = true;
+                                    dualsense.SetLightbarTransition(0, 0, 255, 10, 25);
+                                    lightbarAnimationCooldown.Restart();
                                 }
-                                else if (uvAnimationSide == true && uvAnimationCycleB <= 0)
+                                else if (uvAnimationSide == true && lightbarAnimationCooldown.ElapsedMilliseconds >= 350)
                                 {
                                     uvAnimationSide = false;
+                                    dualsense.SetLightbarTransition(0, 0, 0, 10, 25);
+                                    lightbarAnimationCooldown.Restart();
                                 }
-
-                                if (uvAnimationSide == false)
-                                {
-                                    uvAnimationCycleB = Math.Min(uvAnimationCycleB + 10, 255);
-                                }
-                                else
-                                {
-                                    uvAnimationCycleB = Math.Max(uvAnimationCycleB - 8, 0);
-                                }
-
-                                dualsense.SetLightbar(0, 0, uvAnimationCycleB);
                             }
                             else if (game.isUVRecharging())
                             {
@@ -944,7 +937,6 @@ internal class Program
                                 }
                                 else if (flashlight && dualsense.ButtonState.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
                                 {
-
                                     dualsense.PlayHaptics(HapticEffect.FlashlightOff, 1.0f, 0.0f, 1.0f, true);
                                     flashlight = false;
                                     hapticCooldown.Restart();
@@ -957,27 +949,18 @@ internal class Program
                                     hapticCooldown.Restart();
                                 }
 
-                                if (uvAnimationSide == false && uvAnimationCycleB >= maxCycleValue)
+                                if (uvAnimationSide == false && lightbarAnimationCooldown.ElapsedMilliseconds >= 350)
                                 {
+                                    dualsense.SetLightbarTransition(200, 0, 10, 5, 20);
                                     uvAnimationSide = true;
+                                    lightbarAnimationCooldown.Restart();
                                 }
-                                else if (uvAnimationSide == true && uvAnimationCycleB <= minCycleValue)
+                                else if (uvAnimationSide == true && lightbarAnimationCooldown.ElapsedMilliseconds >= 350)
                                 {
+                                    dualsense.SetLightbarTransition(60, 0, 255, 5, 20);
                                     uvAnimationSide = false;
+                                    lightbarAnimationCooldown.Restart();
                                 }
-
-                                if (uvAnimationSide == false)
-                                {
-                                    uvAnimationCycleR = Math.Min(uvAnimationCycleR + increment, minCycleValue);
-                                    uvAnimationCycleB = Math.Min(uvAnimationCycleB + increment, maxCycleValue);
-                                }
-                                else
-                                {
-                                    uvAnimationCycleR = Math.Max(uvAnimationCycleR - increment, minCycleValue);
-                                    uvAnimationCycleB = Math.Max(uvAnimationCycleB - increment, minCycleValue);
-                                }
-
-                                dualsense.SetLightbar(uvAnimationCycleR, 0, uvAnimationCycleB);
                             }
                             // Change RGB colors to purple
                             else if (game.isUVOn())
@@ -1030,10 +1013,10 @@ internal class Program
                                 firstTime = true;
                                 firstTimeAirdrop = true;
                                 // Change RGB colors according to HP
-                                if (hp >= 175) { dualsense.SetLightbar(0, 255, 0); }
-                                else if (hp < 175 && hp > 75) { dualsense.SetLightbar(255, 255, 0); }
-                                else if (hp < 75 && hp != 0) { dualsense.SetLightbar(255, 0, 0); }
-                                else { dualsense.SetLightbar(0, 0, 0); }
+                                if (hp >= 175) { dualsense.SetLightbarTransition(0, 255, 0, 5, 10); }
+                                else if (hp < 175 && hp > 75) { dualsense.SetLightbarTransition(255, 255, 0, 5, 10); }
+                                else if (hp < 75 && hp != 0) { dualsense.SetLightbarTransition(255, 0, 0, 5, 10); }
+                                else { dualsense.SetLightbarTransition(0, 0, 0, 5, 10); }
                             }
 
                             if (!game.isUVOn())
