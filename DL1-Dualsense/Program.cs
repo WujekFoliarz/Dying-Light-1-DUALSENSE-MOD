@@ -1,4 +1,4 @@
-﻿using DL1_Dualsense;
+using DL1_Dualsense;
 using Nefarius.ViGEm.Client;
 using Nefarius.ViGEm.Client.Targets;
 using Nefarius.ViGEm.Client.Targets.DualShock4;
@@ -9,7 +9,6 @@ internal class Program
 {
     private static Game game = new Game();
     private static Dualsense dualsense = new Dualsense(0);
-    public static bool airDrop = false;
     public static bool meleeHit = false;
     private static ViGEmClient client = new ViGEmClient();
     private static IDualShock4Controller dualshock4 = client.CreateDualShock4Controller();
@@ -36,7 +35,6 @@ internal class Program
         float walkSpeed = 0;
         float Lfoot = 1;
         float Rfoot = 0;
-        bool firstTimeAirdrop = true;
 
         dualsense.Start();
 
@@ -55,43 +53,46 @@ internal class Program
 
             while (true)
             {
-                dualshock4.SetButtonState(DualShock4Button.Cross, dualsense.ButtonState.cross);
-                dualshock4.SetButtonState(DualShock4Button.Circle, dualsense.ButtonState.circle);
-                dualshock4.SetButtonState(DualShock4Button.Triangle, dualsense.ButtonState.triangle);
-                dualshock4.SetButtonState(DualShock4Button.Square, dualsense.ButtonState.square);
+                if(dualsense != null && dualsense.Working)
+                {
+                    dualshock4.SetButtonState(DualShock4Button.Cross, dualsense.ButtonState.cross);
+                    dualshock4.SetButtonState(DualShock4Button.Circle, dualsense.ButtonState.circle);
+                    dualshock4.SetButtonState(DualShock4Button.Triangle, dualsense.ButtonState.triangle);
+                    dualshock4.SetButtonState(DualShock4Button.Square, dualsense.ButtonState.square);
 
-                DualShock4DPadDirection direction = DualShock4DPadDirection.None;
-                if (dualsense.ButtonState.DpadDown) { direction = DualShock4DPadDirection.South; }
-                else if (dualsense.ButtonState.DpadUp) { direction = DualShock4DPadDirection.North; }
-                else if (dualsense.ButtonState.DpadLeft) { direction = DualShock4DPadDirection.West; }
-                else if (dualsense.ButtonState.DpadRight) { direction = DualShock4DPadDirection.East; }
-                dualshock4.SetDPadDirection(direction);
+                    DualShock4DPadDirection direction = DualShock4DPadDirection.None;
+                    if (dualsense.ButtonState.DpadDown) { direction = DualShock4DPadDirection.South; }
+                    else if (dualsense.ButtonState.DpadUp) { direction = DualShock4DPadDirection.North; }
+                    else if (dualsense.ButtonState.DpadLeft) { direction = DualShock4DPadDirection.West; }
+                    else if (dualsense.ButtonState.DpadRight) { direction = DualShock4DPadDirection.East; }
+                    dualshock4.SetDPadDirection(direction);
 
-                dualshock4.SetAxisValue(DualShock4Axis.LeftThumbX, (byte)dualsense.ButtonState.LX);
-                dualshock4.SetAxisValue(DualShock4Axis.LeftThumbY, (byte)dualsense.ButtonState.LY);
-                dualshock4.SetAxisValue(DualShock4Axis.RightThumbX, (byte)dualsense.ButtonState.RX);
-                dualshock4.SetAxisValue(DualShock4Axis.RightThumbY, (byte)dualsense.ButtonState.RY);
-                dualshock4.SetButtonState(DualShock4Button.ThumbLeft, dualsense.ButtonState.L3);
-                dualshock4.SetButtonState(DualShock4Button.ThumbRight, dualsense.ButtonState.R3);
+                    dualshock4.SetAxisValue(DualShock4Axis.LeftThumbX, (byte)dualsense.ButtonState.LX);
+                    dualshock4.SetAxisValue(DualShock4Axis.LeftThumbY, (byte)dualsense.ButtonState.LY);
+                    dualshock4.SetAxisValue(DualShock4Axis.RightThumbX, (byte)dualsense.ButtonState.RX);
+                    dualshock4.SetAxisValue(DualShock4Axis.RightThumbY, (byte)dualsense.ButtonState.RY);
+                    dualshock4.SetButtonState(DualShock4Button.ThumbLeft, dualsense.ButtonState.L3);
+                    dualshock4.SetButtonState(DualShock4Button.ThumbRight, dualsense.ButtonState.R3);
 
-                if ((byte)dualsense.ButtonState.L2 >= triggerThreshold)
-                    dualshock4.LeftTrigger = (byte)dualsense.ButtonState.L2;
-                else
-                    dualshock4.LeftTrigger = (byte)0;
+                    if ((byte)dualsense.ButtonState.L2 >= triggerThreshold)
+                        dualshock4.LeftTrigger = (byte)dualsense.ButtonState.L2;
+                    else
+                        dualshock4.LeftTrigger = (byte)0;
 
-                if ((byte)dualsense.ButtonState.R2 >= triggerThreshold)
-                    dualshock4.RightTrigger = (byte)dualsense.ButtonState.R2;
-                else
-                    dualshock4.RightTrigger = (byte)0;
+                    if ((byte)dualsense.ButtonState.R2 >= triggerThreshold)
+                        dualshock4.RightTrigger = (byte)dualsense.ButtonState.R2;
+                    else
+                        dualshock4.RightTrigger = (byte)0;
 
-                dualshock4.SetButtonState(DualShock4SpecialButton.Touchpad, dualsense.ButtonState.touchBtn);
-                dualshock4.SetButtonState(DualShock4Button.Share, dualsense.ButtonState.share);
-                dualshock4.SetButtonState(DualShock4Button.Options, dualsense.ButtonState.options);
-                dualshock4.SetButtonState(DualShock4Button.ShoulderLeft, dualsense.ButtonState.L1);
-                dualshock4.SetButtonState(DualShock4Button.ShoulderRight, dualsense.ButtonState.R1);
-                dualshock4.SetButtonState(DualShock4SpecialButton.Ps, dualsense.ButtonState.ps);
+                    dualshock4.SetButtonState(DualShock4SpecialButton.Touchpad, dualsense.ButtonState.touchBtn);
+                    dualshock4.SetButtonState(DualShock4Button.Share, dualsense.ButtonState.share);
+                    dualshock4.SetButtonState(DualShock4Button.Options, dualsense.ButtonState.options);
+                    dualshock4.SetButtonState(DualShock4Button.ShoulderLeft, dualsense.ButtonState.L1);
+                    dualshock4.SetButtonState(DualShock4Button.ShoulderRight, dualsense.ButtonState.R1);
+                    dualshock4.SetButtonState(DualShock4SpecialButton.Ps, dualsense.ButtonState.ps);
 
-                Thread.Sleep(1);
+                    Thread.Sleep(1);
+                }
             }
 
         }).Start();
@@ -639,79 +640,61 @@ internal class Program
                             }
                             else if (weapon == 2288 && hapticCooldown.ElapsedMilliseconds >= 1500) // Landed on car
                             {
-
                                 dualsense.PlayHaptics(HapticEffect.LandingOnCar, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2738 && hapticCooldown.ElapsedMilliseconds >= 1500) // Reparing weapon
                             {
-
                                 dualsense.PlayHaptics(HapticEffect.WeaponRepair, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2290 && hapticCooldown.ElapsedMilliseconds >= 1500) // Landed on trash
                             {
-
                                 dualsense.PlayHaptics(HapticEffect.LandingOnTrash, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2284 && hapticCooldown.ElapsedMilliseconds >= 1500) // Rolling
                             {
-
-
                                 dualsense.PlayHaptics(HapticEffect.SafetyRoll, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 1322 && hapticCooldown.ElapsedMilliseconds >= 2000) // Using remote control
                             {
-
-
                                 dualsense.PlayHaptics(HapticEffect.Remote, 1.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2907 && hapticCooldown.ElapsedMilliseconds >= 4000) // Opening chest
                             {
-
                                 dualsense.PlayHaptics(HapticEffect.OpeningChest, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2611 && hapticCooldown.ElapsedMilliseconds >= 300) // Sliding
                             {
-
-
                                 dualsense.PlayHaptics(HapticEffect.Slide, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2048 && hapticCooldown.ElapsedMilliseconds >= 800) // Grappling hook start
                             {
-
-
                                 dualsense.PlayHaptics(HapticEffect.GrapplingHookStart, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2047 && hapticCooldown.ElapsedMilliseconds >= 1000) // Grappling hook loop
                             {
-
-
                                 dualsense.PlayHaptics(HapticEffect.GrapplingHookEnd, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2283 && hapticCooldown.ElapsedMilliseconds >= 1000 || weapon == 2329 && hapticCooldown.ElapsedMilliseconds >= 1000 || weapon == 2423 && hapticCooldown.ElapsedMilliseconds >= 1000) // Soft landing
                             {
-
                                 dualsense.PlayHaptics(HapticEffect.LandOnDirt, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2256 && hapticCooldown.ElapsedMilliseconds >= 300 || weapon == 2257 && hapticCooldown.ElapsedMilliseconds >= 300) // Looting
                             {
-
-
                                 dualsense.PlayHaptics(HapticEffect.Looting, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 2603 && hapticCooldown.ElapsedMilliseconds >= 300) // Climb right
                             {
-
                                 switch (rand.Next(0, 3))
                                 {
                                     case 0:
@@ -728,7 +711,6 @@ internal class Program
                             }
                             else if (weapon == 2599 && hapticCooldown.ElapsedMilliseconds >= 300) // Climb left
                             {
-
                                 switch (rand.Next(0, 3))
                                 {
                                     case 0:
@@ -745,7 +727,6 @@ internal class Program
                             }
                             else if (weapon >= 2500 && weapon <= 2560 && hapticCooldown.ElapsedMilliseconds >= 1000) // Common climbs
                             {
-
                                 switch (rand.Next(0, 3))
                                 {
                                     case 0:
@@ -763,7 +744,6 @@ internal class Program
                             }
                             else if (weapon >= 2520 && weapon <= 2536 && hapticCooldown.ElapsedMilliseconds >= 150) // Climbing on a wall
                             {
-
                                 switch (rand.Next(0, 3))
                                 {
                                     case 0:
@@ -781,7 +761,6 @@ internal class Program
                             }
                             else if (weapon == 2388 && hapticCooldown.ElapsedMilliseconds >= 1000) // Jump over enemies
                             {
-
                                 switch (rand.Next(0, 3))
                                 {
                                     case 0:
@@ -798,13 +777,11 @@ internal class Program
                             }
                             else if (weapon == 2319 && hapticCooldown.ElapsedMilliseconds >= 2000) // neck snap from behind
                             {
-
                                 dualsense.PlayHaptics(HapticEffect.NeckFinisher, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
                             else if (weapon == 1210 && hapticCooldown.ElapsedMilliseconds >= 2000) // neck snap from behind
                             {
-
                                 dualsense.PlayHaptics(HapticEffect.HeavyBodyCollision, 0.0f, 1.0f, 1.0f, true);
                                 hapticCooldown.Restart();
                             }
@@ -871,8 +848,6 @@ internal class Program
 
                             if (meleeHit && hapticCooldown.ElapsedMilliseconds >= 350)
                             {
-
-
                                 switch (rand.Next(0, 3))
                                 {
                                     case 0:
@@ -889,45 +864,7 @@ internal class Program
                                 hapticCooldown.Restart();
                             }
 
-                            if (airDrop)
-                            {
-                                if (firstTimeAirdrop)
-                                {
-                                    hapticCooldown.Restart();
-                                    dualsense.PlayHaptics(HapticEffect.ElectronicBeep, 1.0f, 1.0f, 1.0f, true);
-                                    firstTimeAirdrop = false;
-                                }
-
-                                if (!flashlight && dualsense.ButtonState.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
-                                {
-
-                                    dualsense.PlayHaptics(HapticEffect.FlashlightOn, 1.0f, 0.0f, 1.0f, true);
-                                    flashlight = true;
-                                    hapticCooldown.Restart();
-                                }
-                                else if (flashlight && dualsense.ButtonState.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
-                                {
-
-
-                                    dualsense.PlayHaptics(HapticEffect.FlashlightOff, 1.0f, 0.0f, 1.0f, true);
-                                    flashlight = false;
-                                    hapticCooldown.Restart();
-                                }
-
-                                if (uvAnimationSide == false && lightbarAnimationCooldown.ElapsedMilliseconds >= 350)
-                                {
-                                    uvAnimationSide = true;
-                                    dualsense.SetLightbarTransition(0, 0, 255, 10, 25);
-                                    lightbarAnimationCooldown.Restart();
-                                }
-                                else if (uvAnimationSide == true && lightbarAnimationCooldown.ElapsedMilliseconds >= 350)
-                                {
-                                    uvAnimationSide = false;
-                                    dualsense.SetLightbarTransition(0, 0, 0, 10, 25);
-                                    lightbarAnimationCooldown.Restart();
-                                }
-                            }
-                            else if (game.isUVRecharging())
+                            if (game.isUVRecharging())
                             {
                                 if (!flashlight && dualsense.ButtonState.DpadUp && hapticCooldown.ElapsedMilliseconds > 250 && !lastDpadUP)
                                 {
@@ -1011,7 +948,6 @@ internal class Program
                             else
                             {
                                 firstTime = true;
-                                firstTimeAirdrop = true;
                                 // Change RGB colors according to HP
                                 if (hp >= 175) { dualsense.SetLightbarTransition(0, 255, 0, 5, 10); }
                                 else if (hp < 175 && hp > 75) { dualsense.SetLightbarTransition(255, 255, 0, 5, 10); }
@@ -1179,8 +1115,7 @@ internal class Program
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("\n" + e.Message + " " + e.Source);
-                        break;
+                        Console.WriteLine(e.StackTrace + "\n" + e.Message + "\n" + e.Source);
                     }
 
                 }
@@ -1190,35 +1125,19 @@ internal class Program
 
     }
 
-    private static Stopwatch watch = new Stopwatch();
     private static void Dualshock4_FeedbackReceived(object sender, DualShock4FeedbackReceivedEventArgs e)
     {
-        int l_rotor = e.SmallMotor;
-        int r_rotor = e.LargeMotor;
+        int l_rotor = e.LargeMotor;
+        int r_rotor = e.SmallMotor;
 
         dualsense.SetStandardRumble((byte)l_rotor, (byte)r_rotor);
 
         //Console.WriteLine(l_rotor + " " + r_rotor);
 
-        if (l_rotor == 0 && r_rotor == 2 || l_rotor == 38 && r_rotor == 25)
-        {
-            if (watch.ElapsedMilliseconds <= 21000)
-            {
-                airDrop = true;
-                watch.Start();
-            }
-        }
-
         if (l_rotor == 153 && r_rotor == 153 || l_rotor == 168 && r_rotor == 168)
             meleeHit = true;
         else
             meleeHit = false;
-
-        if (watch.ElapsedMilliseconds >= 21000)
-        {
-            airDrop = false;
-            watch.Reset();
-        }
     }
 
     public static void turnMicrophone(bool onORoff)
