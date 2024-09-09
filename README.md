@@ -1,3 +1,5 @@
+### Discord → https://discord.gg/AFYvxf282U
+
 # FEATURES
 - Adaptive triggers
 - Haptic Feedback
