@@ -1,3 +1,4 @@
+### Download → https://github.com/WujekFoliarz/Dying-Light-1-DUALSENSE-MOD/releases
 ### Discord → https://discord.gg/AFYvxf282U
 
 # FEATURES
