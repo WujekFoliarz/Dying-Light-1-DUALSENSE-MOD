@@ -1,4 +1,4 @@
-## The 10th anniversary update fucked the mod up, I will rewrite it soon.
+# ⚠️ The 10th anniversary update fucked the mod up, I will rewrite it soon. 
 
 ### Download → https://github.com/WujekFoliarz/Dying-Light-1-DUALSENSE-MOD/releases
 ### Discord → https://discord.gg/AFYvxf282U
