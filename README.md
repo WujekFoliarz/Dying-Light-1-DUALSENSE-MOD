@@ -12,6 +12,8 @@ How to use:
 - Paste the files in game directory
 - Disable Steam Input for Dying Light
 
+### Note: This mod works completely standalone without any apps like DSX, turn them off when playing with this mod
+
 Please report any bugs or weapons that don't create trigger resistance
 
 
