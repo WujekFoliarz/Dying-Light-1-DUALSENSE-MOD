@@ -1,4 +1,4 @@
-﻿// dllmain.cpp : Definiuje punkt wejścia dla aplikacji DLL.
+// dllmain.cpp : Definiuje punkt wejścia dla aplikacji DLL.
 #include "pch.h"
 
 HANDLE hMainThread = nullptr;
@@ -123,8 +123,8 @@ void LoadAllSounds(void* controller) { // it just works
 	Dualsense_LoadSound(controller, "hangonedge1", std::string(folder + "climb_hang_shimmy_00_0.wav").c_str());
 	Dualsense_LoadSound(controller, "hangonedge3", std::string(folder + "climb_hang_shimmy_02_0.wav").c_str());
 	Dualsense_LoadSound(controller, "heavybodycollision", std::string(folder + "body_zombie_collision_ground_heavy_03_0.wav").c_str());
-	Dualsense_LoadSound(controller, "zombiebiteloopright", std::string(folder + "zombie_walker_grab_bite_long_right_0.wav").c_str());
-	Dualsense_LoadSound(controller, "zombiebiteloopleft", std::string(folder + "zombie_walker_grab_bite_long_left_0.wav").c_str());
+	Dualsense_LoadSound(controller, "zombie_bite_loopright", std::string(folder + "zombie_walker_grab_bite_long_right_0.wav").c_str());
+	Dualsense_LoadSound(controller, "zombie_bite_loopleft", std::string(folder + "zombie_walker_grab_bite_long_left_0.wav").c_str());
 	Dualsense_LoadSound(controller, "flashlighton", std::string(folder + "torch_on_0.wav").c_str());
 	Dualsense_LoadSound(controller, "flashlightoff", std::string(folder + "torch_off_0.wav").c_str());
 	Dualsense_LoadSound(controller, "uv_failed", std::string(folder + "uv_flashlight_start_failed_0.wav").c_str());
@@ -606,24 +606,28 @@ void MainThread() {
 				else if (AnimEqual(1210)) { // Heavy body collision
 					Dualsense_PlayHaptics(controller, "heavybodycollision", true, false);
 				}
-				else if (AnimEqual(2440) || AnimEqual(2438)) { // Grabbed by biter right
-					Dualsense_PlayHaptics(controller, "zombiebiteloopright", true, false);
-				}
-				else if (AnimEqual(2441)) { // Grabbed by biter right
-					Dualsense_PlayHaptics(controller, "zombiebiteloopright", true, false);
-				}
-				else if (AnimEqual(2328)) { // Grabbed by biter left
-					Dualsense_PlayHaptics(controller, "zombiebiteloopleft", true, false);
-				}
-				else if (AnimEqual(2327)) { // Broke out of biter grab left
-					Dualsense_PlayHaptics(controller, "zombiebiteloopleft", true, false);
-				}
-				else if (AnimEqual(2439)) { // Grabbed by biter front
-					Dualsense_PlayHaptics(controller, "zombiebiteloopright", true, false);
-				}
 				else {
 					Dualsense_SetLeftTrigger(controller, Trigger::Off, none);
 					Dualsense_SetRightTrigger(controller, Trigger::Off, none);
+				}
+
+				if (AnimEqual(2440) || AnimEqual(2438)) { // Grabbed by biter right
+					Dualsense_PlayHaptics(controller, "zombie_bite_loopright", true, false);
+				}
+				else if (AnimEqual(2441)) { // Grabbed by biter right
+					Dualsense_PlayHaptics(controller, "zombie_bite_loopright", true, false);
+				}
+				else if (AnimEqual(2328)) { // Grabbed by biter left
+					Dualsense_PlayHaptics(controller, "zombie_bite_loopleft", true, false);
+				}
+				else if (AnimEqual(2327)) { // Broke out of biter grab left
+					Dualsense_PlayHaptics(controller, "zombie_bite_loopleft", true, false);
+				}
+				else if (AnimEqual(2439)) { // Grabbed by biter front
+					Dualsense_PlayHaptics(controller, "zombie_bite_loopright", true, false);
+				}
+				else {
+					Dualsense_StopSoundsThatStartWith(controller, "zombie_bite_");
 				}
 
 				/*
