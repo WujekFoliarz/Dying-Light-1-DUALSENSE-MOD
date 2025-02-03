@@ -36,7 +36,7 @@ uintptr_t FindDMAAddy(HANDLE hProc, uintptr_t ptr, std::vector<unsigned int> off
 struct PlayerVariables {
 public:
 	float HP = 0;
-	int Anim = 0;
+	uint16_t Anim = 0;
 	int PauseState = 0;
 	uint8_t UVActive = 0;
 };
@@ -132,9 +132,9 @@ void LoadAllSounds(void* controller) { // it just works
 	Dualsense_LoadSound(controller, "hit1", std::string(folder + "hit_fists_00_0.wav").c_str());
 	Dualsense_LoadSound(controller, "hit2", std::string(folder + "hit_fists_01_0.wav").c_str());
 	Dualsense_LoadSound(controller, "hit3", std::string(folder + "hit_fists_02_0.wav").c_str());
-	Dualsense_LoadSound(controller, "uichangeselection", std::string(folder + "uichangeselection.wav").c_str());
-	Dualsense_LoadSound(controller, "uiselect", std::string(folder + "uiselect.wav").c_str());
-	Dualsense_LoadSound(controller, "uiselect2", std::string(folder + "uiselect2.wav").c_str());
+	Dualsense_LoadSound(controller, "ui_changeselection", std::string(folder + "uichangeselection.wav").c_str());
+	Dualsense_LoadSound(controller, "ui_select", std::string(folder + "uiselect.wav").c_str());
+	Dualsense_LoadSound(controller, "ui_select2", std::string(folder + "uiselect2.wav").c_str());
 }
 
 void MainThread() {
@@ -260,21 +260,18 @@ void MainThread() {
 				R = 255; G = 102; B = 0;
 
 				if (buttonState.DpadLeft || buttonState.DpadRight || buttonState.DpadDown || buttonState.DpadUp) {
-						Dualsense_PlayHaptics(controller, "uichangeselection", false, false);
-						timer.Restart();
-					
+					Dualsense_PlayHaptics(controller, "ui_changeselection", false, false);				
 				}
 
 				if (buttonState.cross) {
-						Dualsense_PlayHaptics(controller, "uiselect2", false, false);
-						timer.Restart();
-					
+					Dualsense_PlayHaptics(controller, "ui_select2", false, false);				
 				}
 
 				if (buttonState.circle) {
-						Dualsense_PlayHaptics(controller, "uiselect", false, false);
-					
+					Dualsense_PlayHaptics(controller, "ui_select", false, false);		
 				}
+
+				Dualsense_StopSoundsThatDontStartWith(controller, "ui_");
 			}
 			else {
 				if (AnimRange(2058, 2024, 2029)) { // 1H sharp
@@ -477,7 +474,7 @@ void MainThread() {
 				else if (AnimEqual(2790)) { // Watch
 					Dualsense_PlayHaptics(controller, "watchbeep", true, false);
 				}
-				else if (playerVars.Anim >= 2730 && playerVars.Anim <= 2738 && playerVars.Anim != 2731) { // Zipline
+				else if (playerVars.Anim == 2737 || playerVars.Anim == 2736 || playerVars.Anim == 2735) { // Zipline
 					Dualsense_PlayHaptics(controller, "zipline", true, true);
 				}
 				else if (AnimEqual(2731)) { // Wallrun
@@ -609,6 +606,7 @@ void MainThread() {
 				else {
 					Dualsense_SetLeftTrigger(controller, Trigger::Off, none);
 					Dualsense_SetRightTrigger(controller, Trigger::Off, none);
+					Dualsense_StopSoundsThatStartWith(controller, "zipline");
 				}
 
 				if (AnimEqual(2440) || AnimEqual(2438)) { // Grabbed by biter right
@@ -627,7 +625,7 @@ void MainThread() {
 					Dualsense_PlayHaptics(controller, "zombie_bite_loopright", true, false);
 				}
 				else {
-					Dualsense_StopSoundsThatStartWith(controller, "zombie_bite_");
+					Dualsense_StopSoundsThatStartWith(controller, "zombie_bite_");			
 				}
 
 				/*
@@ -672,10 +670,6 @@ void MainThread() {
 				}
 				else {
 					Dualsense_StopSoundsThatStartWith(controller, "uv_");
-
-					if (playerVars.Anim <= 2730 || playerVars.Anim >= 2738) {
-						Dualsense_StopSoundsThatStartWith(controller, "zipline");
-					}
 
 					if (!WasFlashlightOffPlayed && WasFlashlightOn) {
 						Dualsense_PlayHaptics(controller, "flashlightoff", true, false);
@@ -755,6 +749,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 				WaitForSingleObject(hMainThread, INFINITE);
 				CloseHandle(hMainThread);
 			}
+
 			break;
 		}
 	}
