@@ -276,6 +276,7 @@ extern "C" {
 	DUALSENSEAPI bool Dualsense_SetSoundVolume(void* handle, const char* soundName, float volume);
 	DUALSENSEAPI bool Dualsense_SetSoundPitch(void* handle, const char* soundName, float pitch);
 	DUALSENSEAPI void Dualsense_StopSoundsThatStartWith(void* handle, const char* prefix);
+	DUALSENSEAPI void Dualsense_StopSoundsThatDontStartWith(void* handle, const char* prefix);
 	DUALSENSEAPI void Dualsense_SetSpeakerVolume(void* handle, int Volume);
 
 	// Configuration and Settings
