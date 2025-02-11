@@ -211,7 +211,6 @@ void MainThread() {
 		Dualsense_InitializeAudioEngine(controller);
 		LoadAllSounds(controller);
 		HapticFeedbackStatus hf_status = Dualsense_GetHapticFeedbackStatus(controller);
-		std::cout << hf_status << std::endl;
 
 		Timer timer;
 		int R, G, B = 0;
@@ -235,7 +234,7 @@ void MainThread() {
 			Dualsense_GetButtonState(controller, &buttonState);
 
 			if (!Dualsense_IsConnected(controller)) {
-				if (Dualsense_Connect(controller, true));
+				if (Dualsense_Connect(controller, false));
 				{
 					std::this_thread::sleep_for(std::chrono::milliseconds(1100));
 					Dualsense_InitializeAudioEngine(controller);
@@ -726,15 +725,13 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 ) {
 	switch (ul_reason_for_call) {
 		case DLL_PROCESS_ATTACH:
-		{	
-			/*
-			AllocConsole();
-			FILE* fDummy;
-			freopen_s(&fDummy, "CONIN$", "r", stdin);
-			freopen_s(&fDummy, "CONOUT$", "w", stderr);
-			freopen_s(&fDummy, "CONOUT$", "w", stdout);
-			*/
-
+		{			
+			//AllocConsole();
+			//FILE* fDummy;
+			//freopen_s(&fDummy, "CONIN$", "r", stdin);
+			//freopen_s(&fDummy, "CONOUT$", "w", stderr);
+			//freopen_s(&fDummy, "CONOUT$", "w", stdout);
+			
 			std::cout << "Starting dualsense mod" << std::endl;
 
 			hMainThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)MainThread, hModule, 0, 0);
