@@ -1,6 +1,8 @@
 // dllmain.cpp : Definiuje punkt wejścia dla aplikacji DLL.
 #include "pch.h"
 
+#define USE_CONSOLE 0
+
 HANDLE hMainThread = nullptr;
 const std::string folder = "haptics\\"; // folder path to sound files
 std::atomic<bool> RunControllerLogic = true; // global bool for main loop
@@ -39,6 +41,8 @@ public:
 	uint16_t Anim = 0;
 	int PauseState = 0;
 	uint8_t UVActive = 0;
+	uint8_t buggyLight = 0;
+	bool wasBuggyLightOn = false;
 };
 
 struct LEDAnimationValues {
@@ -135,6 +139,16 @@ void LoadAllSounds(void* controller) { // it just works
 	Dualsense_LoadSound(controller, "ui_changeselection", std::string(folder + "uichangeselection.wav").c_str());
 	Dualsense_LoadSound(controller, "ui_select", std::string(folder + "uiselect.wav").c_str());
 	Dualsense_LoadSound(controller, "ui_select2", std::string(folder + "uiselect2.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_ignition", std::string(folder + "buggy_ignition_start_0.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_lights_on", std::string(folder + "buggy_lights_on_0.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_lights_off", std::string(folder + "buggy_lights_off_0.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_hit1", std::string(folder + "buggy_hit_default_heavy_00_0.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_hit2", std::string(folder + "buggy_hit_default_heavy_01_0.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_hit3", std::string(folder + "buggy_hit_default_heavy_02_0.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_hit4", std::string(folder + "buggy_hit_default_heavy_03_0.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_hitobject1", std::string(folder + "buggy_hit_object_heavy_00_0.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_hitobject2", std::string(folder + "buggy_hit_object_heavy_01_0.wav").c_str());
+	Dualsense_LoadSound(controller, "buggy_hitobject3", std::string(folder + "buggy_hit_object_heavy_02_0.wav").c_str());
 }
 
 void MainThread() {
@@ -185,6 +199,7 @@ void MainThread() {
 		std::vector<unsigned int> healthOffset{ 0x20,0xDF0,0x0, 0x125C };
 		std::vector<unsigned int> uvOffset{ 0x20,0xDF0,0x0, 0xC50, 0x54 };
 		std::vector<unsigned int> pauseOffset{ 0x20,0xA20,0x30 };
+		std::vector<unsigned int> buggyLightOffset{ 0x20,0xDF0,0x0, 0xBC0, 0x68, 0x30C8 };
 
 #pragma region TriggerForces
 		uint8_t none[11] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -206,6 +221,8 @@ void MainThread() {
 		uint8_t doubleActionRevolver[11] = { 255, 184, 255, 143, 71, 0, 0, 0, 0, 0, 0 };
 		uint8_t singleActionRevolver[11] = { 93, 184, 255, 143, 71, 0, 0, 0, 0, 0, 0 };
 		uint8_t pistol[11] = { 93, 184, 255, 143, 71, 0, 0, 0, 0, 0, 0 };
+		uint8_t carBreak[11] = { 80, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		uint8_t carAccelerate[11] = { 23, 230, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 #pragma endregion
 
 		Dualsense_InitializeAudioEngine(controller);
@@ -226,7 +243,10 @@ void MainThread() {
 			ReadProcessMemory(GetCurrentProcess(), (LPCVOID)pauseAddress, &playerVars.PauseState, sizeof(playerVars.PauseState), NULL);
 
 			uintptr_t uvAddress = FindDMAAddy(GetCurrentProcess(), playerBase, uvOffset);
-			ReadProcessMemory(GetCurrentProcess(), (LPCVOID)uvAddress, &playerVars.UVActive, sizeof(playerVars.UVActive), NULL);
+			ReadProcessMemory(GetCurrentProcess(), (LPCVOID)uvAddress, &playerVars.UVActive, sizeof(playerVars.UVActive), NULL);			
+			
+			uintptr_t buggyLightAddress = FindDMAAddy(GetCurrentProcess(), playerBase, buggyLightOffset);
+			ReadProcessMemory(GetCurrentProcess(), (LPCVOID)buggyLightAddress, &playerVars.buggyLight, sizeof(playerVars.buggyLight), NULL);
 #pragma endregion
 
 #pragma region ReadAndVerifyControllerConnection
@@ -256,6 +276,7 @@ void MainThread() {
 
 			if (GamePaused) {
 				Dualsense_SetRightTrigger(controller, Trigger::Rigid_B, none);
+				Dualsense_SetLeftTrigger(controller, Trigger::Rigid_B, none);
 				R = 255; G = 102; B = 0;
 
 				if (buttonState.DpadLeft || buttonState.DpadRight || buttonState.DpadDown || buttonState.DpadUp) {
@@ -602,6 +623,43 @@ void MainThread() {
 				else if (AnimEqual(1210)) { // Heavy body collision
 					Dualsense_PlayHaptics(controller, "heavybodycollision", true, false);
 				}
+				else if (AnimEqual(2716)) { // Buggy ignition
+					Dualsense_PlayHaptics(controller, "buggy_ignition", true, false);
+				}
+				else if (AnimTwoDifferent(2693, 2694)) { // In buggy
+					triggerThreshold = 120;
+					Dualsense_SetLeftTrigger(controller, Trigger::Rigid, carBreak);
+					Dualsense_SetRightTrigger(controller, Trigger::Rigid, carAccelerate);
+
+					if (vigem.rotors.lrotor == 255) {
+						switch (rand() % 4) {
+							case 0: Dualsense_PlayHaptics(controller, "buggy_hit1", true, false); break;
+							case 1: Dualsense_PlayHaptics(controller, "buggy_hit2", true, false); break;
+							case 2: Dualsense_PlayHaptics(controller, "buggy_hit3", true, false); break;
+							case 3: Dualsense_PlayHaptics(controller, "buggy_hit4", true, false); break;
+						}
+					}
+					else if (vigem.rotors.lrotor == 254) {
+						switch (rand() % 3) {
+							case 0: Dualsense_PlayHaptics(controller, "buggy_hitobject1", true, false); break;
+							case 1: Dualsense_PlayHaptics(controller, "buggy_hitobject2", true, false); break;
+							case 2: Dualsense_PlayHaptics(controller, "buggy_hitobject3", true, false); break;
+						}
+					}
+
+					if (playerVars.buggyLight == 0 || playerVars.buggyLight == 256 || playerVars.buggyLight == 65792 || playerVars.buggyLight == 65536) {
+						if (playerVars.wasBuggyLightOn) {
+							Dualsense_PlayHaptics(controller, "buggy_lights_off", true, false);
+							playerVars.wasBuggyLightOn = false;
+						}
+					}
+					else if (playerVars.buggyLight == 1 || playerVars.buggyLight == 257 || playerVars.buggyLight == 65793 || playerVars.buggyLight == 65537) {
+						if (!playerVars.wasBuggyLightOn) {
+							Dualsense_PlayHaptics(controller, "buggy_lights_on", true, false);
+							playerVars.wasBuggyLightOn = true;
+						}
+					}
+				}
 				else {
 					Dualsense_SetLeftTrigger(controller, Trigger::Off, none);
 					Dualsense_SetRightTrigger(controller, Trigger::Off, none);
@@ -627,32 +685,6 @@ void MainThread() {
 					Dualsense_StopSoundsThatStartWith(controller, "zombie_bite_");			
 				}
 
-				/*
-				if (UVLightDepleted) {
-					if (ledAnimation.UV.transitionDirectionRed) {
-						if (R < ledAnimation.UV.red[0]) R += 1;
-						if (B > ledAnimation.UV.red[2]) B -= 1;
-
-						// Check if we've reached color2
-						if (R >= ledAnimation.UV.red[0] && B <= ledAnimation.UV.red[2]) {
-							ledAnimation.UV.transitionDirectionRed = false; // Reverse direction
-						}
-					}
-					else {
-						if (R > ledAnimation.UV.red[0]) R -= 1;
-						if (B < ledAnimation.UV.red[2]) B += 1;
-
-						// Check if we've reached color2
-						if (R <= ledAnimation.UV.red[0] && B >= ledAnimation.UV.red[2]) {
-							ledAnimation.UV.transitionDirectionRed = true; // Reverse direction
-						}
-					}
-
-					if (R2Pushed) {
-						Dualsense_PlayHaptics(controller, "uv_failed", true, false);
-					}
-				}
-				*/
 				if (UVLightOn) {
 					R = 60; G = 0; B = 255;
 					Dualsense_PlayHaptics(controller, "uv_loop", true, true);
@@ -710,7 +742,9 @@ void MainThread() {
 				buttonState.R2 = 0;
 			vigem.UpdateDS4(buttonState);
 #pragma endregion
-
+#if USE_CONSOLE == 1
+			std::cout << "DS4 Rotors: " << vigem.rotors.lrotor << "|" << vigem.rotors.rrotor << " AnimNode: " << playerVars.Anim << std::endl;
+#endif
 			lastButtonState = buttonState;
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
@@ -726,11 +760,13 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	switch (ul_reason_for_call) {
 		case DLL_PROCESS_ATTACH:
 		{			
-			//AllocConsole();
-			//FILE* fDummy;
-			//freopen_s(&fDummy, "CONIN$", "r", stdin);
-			//freopen_s(&fDummy, "CONOUT$", "w", stderr);
-			//freopen_s(&fDummy, "CONOUT$", "w", stdout);
+#if USE_CONSOLE == 1
+			AllocConsole();
+			FILE* fDummy;
+			freopen_s(&fDummy, "CONIN$", "r", stdin);
+			freopen_s(&fDummy, "CONOUT$", "w", stderr);
+			freopen_s(&fDummy, "CONOUT$", "w", stdout);
+#endif
 			
 			std::cout << "Starting dualsense mod" << std::endl;
 
