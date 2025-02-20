@@ -149,6 +149,10 @@ void LoadAllSounds(void* controller) { // it just works
 	Dualsense_LoadSound(controller, "buggy_hitobject1", std::string(folder + "buggy_hit_object_heavy_00_0.wav").c_str());
 	Dualsense_LoadSound(controller, "buggy_hitobject2", std::string(folder + "buggy_hit_object_heavy_01_0.wav").c_str());
 	Dualsense_LoadSound(controller, "buggy_hitobject3", std::string(folder + "buggy_hit_object_heavy_02_0.wav").c_str());
+	Dualsense_LoadSound(controller, "openbasket", std::string(folder + "open_wicker_basket_0.wav").c_str());
+	Dualsense_LoadSound(controller, "opentoolbox", std::string(folder + "box_tools_opening_leg_0.wav").c_str());
+	Dualsense_LoadSound(controller, "openwardrobe", std::string(folder + "wardrobe_c_opening_0.wav").c_str());
+	Dualsense_LoadSound(controller, "openoven", std::string(folder + "oven_open_0.wav").c_str());
 }
 
 void MainThread() {
@@ -252,6 +256,7 @@ void MainThread() {
 #pragma region ReadAndVerifyControllerConnection
 			Dualsense_Read(controller);
 			Dualsense_GetButtonState(controller, &buttonState);
+			hf_status = Dualsense_GetHapticFeedbackStatus(controller);
 
 			if (!Dualsense_IsConnected(controller)) {
 				if (Dualsense_Connect(controller, false));
@@ -263,7 +268,6 @@ void MainThread() {
 					else
 						Dualsense_UseRumbleNotHaptics(controller, false);
 					LoadAllSounds(controller);
-					hf_status = Dualsense_GetHapticFeedbackStatus(controller);
 					std::cout << hf_status << std::endl;
 				}
 				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -294,7 +298,11 @@ void MainThread() {
 				Dualsense_StopSoundsThatDontStartWith(controller, "ui_");
 			}
 			else {
-				if (AnimRange(2058, 2024, 2029)) { // 1H sharp
+
+				if (AnimEqual(2427)) { // lockpicking
+					Dualsense_UseRumbleNotHaptics(controller, true);
+				} 
+				else if (AnimRange(2058, 2024, 2029)) { // 1H sharp
 					triggerThreshold = 120;
 					Dualsense_SetRightTrigger(controller, Trigger::Rigid_A, oneHandedSharp);
 
@@ -626,6 +634,21 @@ void MainThread() {
 				else if (AnimEqual(2716)) { // Buggy ignition
 					Dualsense_PlayHaptics(controller, "buggy_ignition", true, false);
 				}
+				else if (AnimEqual(2979)) { // Open tool box leg
+					Dualsense_PlayHaptics(controller, "opentoolbox", true, false);
+				}
+				else if (AnimEqual(2833)) { // Open little wooden chest
+					Dualsense_PlayHaptics(controller, "openoven", true, false);
+				}
+				else if (AnimEqual(17)) { // Little basket
+					Dualsense_PlayHaptics(controller, "openbasket", true, false);
+				}
+				else if (AnimEqual(19)) { // Big basket
+					Dualsense_PlayHaptics(controller, "openbasket", true, false);
+				}
+				else if (AnimEqual(5537)) { // Wardrobe
+					Dualsense_PlayHaptics(controller, "openwardrobe", true, false);
+				}
 				else if (AnimTwoDifferent(2693, 2694)) { // In buggy
 					triggerThreshold = 120;
 					Dualsense_SetLeftTrigger(controller, Trigger::Rigid, carBreak);
@@ -664,6 +687,11 @@ void MainThread() {
 					Dualsense_SetLeftTrigger(controller, Trigger::Off, none);
 					Dualsense_SetRightTrigger(controller, Trigger::Off, none);
 					Dualsense_StopSoundsThatStartWith(controller, "zipline");
+
+					if(hf_status == HapticFeedbackStatus::Working)
+						Dualsense_UseRumbleNotHaptics(controller, false);
+					else
+						Dualsense_UseRumbleNotHaptics(controller, true);
 				}
 
 				if (AnimEqual(2440) || AnimEqual(2438)) { // Grabbed by biter right
@@ -743,7 +771,7 @@ void MainThread() {
 			vigem.UpdateDS4(buttonState);
 #pragma endregion
 #if USE_CONSOLE == 1
-			std::cout << "DS4 Rotors: " << vigem.rotors.lrotor << "|" << vigem.rotors.rrotor << " AnimNode: " << playerVars.Anim << std::endl;
+			std::cout << std::dec << "DS4 Rotors: " << vigem.rotors.lrotor << "|" << vigem.rotors.rrotor << " AnimNode: " << playerVars.Anim << std::endl;
 #endif
 			lastButtonState = buttonState;
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
