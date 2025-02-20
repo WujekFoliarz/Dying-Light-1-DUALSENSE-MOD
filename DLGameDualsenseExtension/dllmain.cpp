@@ -225,8 +225,8 @@ void MainThread() {
 		uint8_t doubleActionRevolver[11] = { 255, 184, 255, 143, 71, 0, 0, 0, 0, 0, 0 };
 		uint8_t singleActionRevolver[11] = { 93, 184, 255, 143, 71, 0, 0, 0, 0, 0, 0 };
 		uint8_t pistol[11] = { 93, 184, 255, 143, 71, 0, 0, 0, 0, 0, 0 };
-		uint8_t carBreak[11] = { 80, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-		uint8_t carAccelerate[11] = { 23, 230, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		uint8_t carBreak[11] = { 80, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		uint8_t carAccelerate[11] = { 23, 240, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 #pragma endregion
 
 		Dualsense_InitializeAudioEngine(controller);
