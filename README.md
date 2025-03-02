@@ -1,5 +1,5 @@
 
-### THIS MOD IS STEAM ONLY
+### THIS MOD IS STEAM ONLY, PIRATED VERSION DON'T WORK
 ### Download → https://github.com/WujekFoliarz/Dying-Light-1-DUALSENSE-MOD/releases
 ### Discord → https://discord.gg/AFYvxf282U
 
