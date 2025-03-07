@@ -3,6 +3,8 @@
 ### Download → https://github.com/WujekFoliarz/Dying-Light-1-DUALSENSE-MOD/releases
 ### Discord → https://discord.gg/AFYvxf282U
 
+### Note: This mod works completely standalone without any apps like DSX, turn them off when playing with this mod
+
 # FEATURES
 - Adaptive triggers
 - Haptic Feedback
@@ -21,8 +23,6 @@ Problems:
    
    ![image](https://github.com/user-attachments/assets/dc06247f-5cce-4e52-a191-0dc99c88c660)
 
-
-### Note: This mod works completely standalone without any apps like DSX, turn them off when playing with this mod
 
 Please report any bugs or weapons that don't create trigger resistance
 
