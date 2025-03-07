@@ -12,6 +12,15 @@ How to use:
 - Paste the files in game directory
 - Disable Steam Input for Dying Light
 
+Problems:
+ - No haptic effects on impacts? Game settings -> Game -> Set controller vibration to on 
+ - How to turn off steam input?
+
+   ![image](https://github.com/user-attachments/assets/38ad6f82-bc3e-4276-b73d-2ec7a80c3966)
+   
+   ![image](https://github.com/user-attachments/assets/dc06247f-5cce-4e52-a191-0dc99c88c660)
+
+
 ### Note: This mod works completely standalone without any apps like DSX, turn them off when playing with this mod
 
 Please report any bugs or weapons that don't create trigger resistance
