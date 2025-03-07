@@ -11,6 +11,7 @@ How to use:
 - Download and install ViGEMbus (Windows restart required): [Click here (Download "ViGEmBus_1.22.0_x64_x86_arm64.exe")](https://github.com/nefarius/ViGEmBus/releases/tag/v1.22.0)
 - Paste the files in game directory
 - Disable Steam Input for Dying Light
+- Use USB connection (Bluetooth works but it's a worse experience)
 
 Problems:
  - No haptic effects on impacts? Game settings -> Game -> Set controller vibration to on 
