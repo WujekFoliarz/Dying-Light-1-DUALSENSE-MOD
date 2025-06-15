@@ -6,22 +6,26 @@ int main(int argc, char* argv[]) {
 }
 #elif COMPILE_TO_DLL == 1 && defined(_WIN32)
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
-    switch (fdwReason) {
-        case DLL_PROCESS_ATTACH:
-            break;
+	switch (fdwReason) {
+		case DLL_PROCESS_ATTACH: {
+			break;
+		}
 
-        case DLL_THREAD_ATTACH:
-            break;
+		case DLL_THREAD_ATTACH: {
+			break;
+		}
 
-        case DLL_THREAD_DETACH:
-            break;
+		case DLL_THREAD_DETACH: {
+			break;
+		}
 
-        case DLL_PROCESS_DETACH:
-            if (lpvReserved != nullptr) {
-                break;
-            }
-            break;
-    }
-    return TRUE;
+		case DLL_PROCESS_DETACH: {
+			if (lpvReserved != nullptr) {
+				break;
+			}
+			break;
+		}
+	}
+	return TRUE;
 }
 #endif
