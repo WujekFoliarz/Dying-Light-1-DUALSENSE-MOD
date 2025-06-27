@@ -231,13 +231,14 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 			}
 
 			for (auto& hook : g_hooks) {
-				if (MH_CreateHook(hook.target, hook.detour, hook.original) != MH_STATUS::MH_OK) {
+				// ignore errors from hudSoundFunction cuz it only seems to be present on steam
+				if (MH_CreateHook(hook.target, hook.detour, hook.original) != MH_STATUS::MH_OK && hook.name != "hudSoundFunction") {
 					std::string failMessage = "Failed to create hook for " + hook.name;
 					MessageBox(NULL, failMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
 					return 1;
 				}
 
-				if (MH_EnableHook(hook.target) != MH_STATUS::MH_OK) {
+				if (MH_EnableHook(hook.target) != MH_STATUS::MH_OK && hook.name != "hudSoundFunction") {
 					std::string failMessage = "Failed to enable hook for " + hook.name;
 					MessageBox(NULL, failMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
 					return 1;
