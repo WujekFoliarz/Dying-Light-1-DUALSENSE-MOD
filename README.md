@@ -1,3 +1,5 @@
+# Help -> [DISCORD](https://discord.gg/AFYvxf282U) or [ISSUES](https://github.com/WujekFoliarz/Dying-Light-1-DUALSENSE-MOD/issues)
+
 # Installation
 
 1. Download the **latest** version from [releases](https://github.com/WujekFoliarz/Dying-Light-1-DUALSENSE-MOD/releases)
