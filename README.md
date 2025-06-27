@@ -29,4 +29,4 @@ It adds support for Sony controllers such as Dualsense and Dualshock 4 and utili
 
 # Do I need any external programs to run it?
 
-No, you don't need programs like DSX.
+No, you don't need any programs
