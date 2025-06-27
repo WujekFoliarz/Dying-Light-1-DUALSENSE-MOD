@@ -208,6 +208,8 @@ DWORD WINAPI handleTriggerBasedEffects(LPVOID lPtr) {
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
+
+	return 0;
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
