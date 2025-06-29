@@ -27,6 +27,7 @@ private:
 std::mutex g_lock;
 std::atomic<bool> g_useDefaultLightbar = true;
 std::atomic<bool> g_useDefaultRumble = false;
+std::atomic<bool> g_uvOn = false;
 uint32_t g_handle = 0;
 uint32_t g_lastScePadAudioPlayResult = 0;
 AnimationType g_currentAnimation = AnimationType::None;
@@ -80,7 +81,7 @@ namespace libScePad_x64 {
 	typedef __int64(__fastcall* scePadSetLightBar_t)(int handle, s_SceLightBar* led);
 	scePadSetLightBar_t scePadSetLightBar_Org = nullptr;
 	__int64 __fastcall scePadSetLightBar_Hook(int handle, s_SceLightBar* led) {
-		if (g_useDefaultLightbar && !g_paused)
+		if (g_useDefaultLightbar && !g_paused && !g_uvOn)
 			return scePadSetLightBar(handle, led);
 
 		return 0;
@@ -214,6 +215,28 @@ namespace gamedll_x64_rwdi {
 			scePadAudioPlayWave(g_handle, HAPTIC_PATH "torch_off_0.wav", false, false);
 		}
 		flashlightOff_Org(a1);
+	}
+
+	typedef void(__fastcall* uvLight_t)(void* a1, float a2);
+	uvLight_t uvLight_Org = nullptr;
+	void __fastcall uvLight_Hook(void* a1, float a2) {
+		if(a1)
+		{
+			uint8_t unk = *reinterpret_cast<uint8_t*>(reinterpret_cast<char*>(a1) + 84);
+			uvLight_Org(a1, a2);
+			uint8_t unkNew = *reinterpret_cast<uint8_t*>(reinterpret_cast<char*>(a1) + 84);
+
+			if (unk == 0 && unkNew == 1) {
+				g_uvOn = true;
+				scePadAudioPlayWave(g_handle, HAPTIC_PATH "uv_flashlight_working_loop_0.wav", true, true);			
+				s_SceLightBar led = { 60, 0, 255 };
+				scePadSetLightBar(g_handle, &led);
+			}
+			else if ((unk == 1 && unkNew == 0) || (unk == 0 && unkNew == 0)) {
+				g_uvOn = false;
+				scePadAudioStopWave(g_handle, HAPTIC_PATH "uv_flashlight_working_loop_0.wav");
+			}
+		}
 	}
 }
 #endif // FUNCTIONS_H

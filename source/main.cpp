@@ -140,6 +140,13 @@ void setupHooks() {
 			  reinterpret_cast<LPVOID>(&gamedll_x64_rwdi::flashlightOff_Hook),
 			  reinterpret_cast<LPVOID*>(&gamedll_x64_rwdi::flashlightOff_Org) }
 	);
+
+	g_hooks.push_back({ "uvLightHook",
+			  reinterpret_cast<LPVOID>(PatternScan(reinterpret_cast<void*>(gameHModule), "40 53 48 83 EC 50 48 83 B9 50")),
+			  reinterpret_cast<LPVOID>(&gamedll_x64_rwdi::uvLight_Hook),
+			  reinterpret_cast<LPVOID*>(&gamedll_x64_rwdi::uvLight_Org) }
+	);
+
 #pragma endregion
 
 }
