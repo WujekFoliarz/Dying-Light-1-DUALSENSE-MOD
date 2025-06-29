@@ -27,7 +27,7 @@ It adds support for Sony controllers such as Dualsense and Dualshock 4 and utili
 - Adaptive triggers (Dualsense)
 - Haptic Feedback (Dualsense, USB Only)
 - Lightbar
-- Speaker
+- Speaker (USB Only)
 
 # Do I need any external programs to run it?
 
