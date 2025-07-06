@@ -102,49 +102,61 @@ namespace duaLibUtils {
 		uint8_t touch1LastIndex = 0;
 		uint8_t touch2LastIndex = 0;
 		bool started = false;
+		bool disablePlayerLed = false;
+		bool disableLightbar = false;
 	};
 
 	void setPlayerLights(duaLibUtils::controller& controller, bool oldStyle) {
-		switch (controller.playerIndex) {
-			case 1:
-				controller.dualsenseCurOutputState.PlayerLight1 = false;
-				controller.dualsenseCurOutputState.PlayerLight2 = false;
-				controller.dualsenseCurOutputState.PlayerLight3 = true;
-				controller.dualsenseCurOutputState.PlayerLight4 = false;
-				controller.dualsenseCurOutputState.PlayerLight5 = false;
-				break;
+		if(!controller.disablePlayerLed)
+		{
+			switch (controller.playerIndex) {
+				case 1:
+					controller.dualsenseCurOutputState.PlayerLight1 = false;
+					controller.dualsenseCurOutputState.PlayerLight2 = false;
+					controller.dualsenseCurOutputState.PlayerLight3 = true;
+					controller.dualsenseCurOutputState.PlayerLight4 = false;
+					controller.dualsenseCurOutputState.PlayerLight5 = false;
+					break;
 
-			case 2:
-				controller.dualsenseCurOutputState.PlayerLight1 = false;
-				controller.dualsenseCurOutputState.PlayerLight2 = true; // Simplified, as oldStyle ? true : true is always true
-				controller.dualsenseCurOutputState.PlayerLight3 = false;
-				controller.dualsenseCurOutputState.PlayerLight4 = oldStyle ? true : false;
-				controller.dualsenseCurOutputState.PlayerLight5 = false;
-				break;
+				case 2:
+					controller.dualsenseCurOutputState.PlayerLight1 = false;
+					controller.dualsenseCurOutputState.PlayerLight2 = true; // Simplified, as oldStyle ? true : true is always true
+					controller.dualsenseCurOutputState.PlayerLight3 = false;
+					controller.dualsenseCurOutputState.PlayerLight4 = oldStyle ? true : false;
+					controller.dualsenseCurOutputState.PlayerLight5 = false;
+					break;
 
-			case 3:
-				controller.dualsenseCurOutputState.PlayerLight1 = true;
-				controller.dualsenseCurOutputState.PlayerLight2 = false;
-				controller.dualsenseCurOutputState.PlayerLight3 = true;
-				controller.dualsenseCurOutputState.PlayerLight4 = false;
-				controller.dualsenseCurOutputState.PlayerLight5 = oldStyle ? true : false;
-				break;
+				case 3:
+					controller.dualsenseCurOutputState.PlayerLight1 = true;
+					controller.dualsenseCurOutputState.PlayerLight2 = false;
+					controller.dualsenseCurOutputState.PlayerLight3 = true;
+					controller.dualsenseCurOutputState.PlayerLight4 = false;
+					controller.dualsenseCurOutputState.PlayerLight5 = oldStyle ? true : false;
+					break;
 
-			case 4:
-				controller.dualsenseCurOutputState.PlayerLight1 = true;
-				controller.dualsenseCurOutputState.PlayerLight2 = true;
-				controller.dualsenseCurOutputState.PlayerLight3 = false;
-				controller.dualsenseCurOutputState.PlayerLight4 = oldStyle ? true : false;
-				controller.dualsenseCurOutputState.PlayerLight5 = oldStyle ? true : false;
-				break;
+				case 4:
+					controller.dualsenseCurOutputState.PlayerLight1 = true;
+					controller.dualsenseCurOutputState.PlayerLight2 = true;
+					controller.dualsenseCurOutputState.PlayerLight3 = false;
+					controller.dualsenseCurOutputState.PlayerLight4 = oldStyle ? true : false;
+					controller.dualsenseCurOutputState.PlayerLight5 = oldStyle ? true : false;
+					break;
 
-			default:
-				controller.dualsenseCurOutputState.PlayerLight1 = false;
-				controller.dualsenseCurOutputState.PlayerLight2 = false;
-				controller.dualsenseCurOutputState.PlayerLight3 = false;
-				controller.dualsenseCurOutputState.PlayerLight4 = false;
-				controller.dualsenseCurOutputState.PlayerLight5 = false;
-				break;
+				default:
+					controller.dualsenseCurOutputState.PlayerLight1 = false;
+					controller.dualsenseCurOutputState.PlayerLight2 = false;
+					controller.dualsenseCurOutputState.PlayerLight3 = false;
+					controller.dualsenseCurOutputState.PlayerLight4 = false;
+					controller.dualsenseCurOutputState.PlayerLight5 = false;
+					break;
+			}
+		}
+		else {
+			controller.dualsenseCurOutputState.PlayerLight1 = false;
+			controller.dualsenseCurOutputState.PlayerLight2 = false;
+			controller.dualsenseCurOutputState.PlayerLight3 = false;
+			controller.dualsenseCurOutputState.PlayerLight4 = false;
+			controller.dualsenseCurOutputState.PlayerLight5 = false;
 		}
 	}
 
@@ -1302,14 +1314,14 @@ int scePadSetLightBar(int handle, s_SceLightBar* lightbar) {
 		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
 
 		if (controller.deviceType == DUALSENSE) {
-			controller.dualsenseCurOutputState.LedRed = lightbar->r;
-			controller.dualsenseCurOutputState.LedGreen = lightbar->g;
-			controller.dualsenseCurOutputState.LedBlue = lightbar->b;
+			controller.dualsenseCurOutputState.LedRed = controller.disableLightbar ? 0 : lightbar->r;
+			controller.dualsenseCurOutputState.LedGreen = controller.disableLightbar ? 0 : lightbar->g;
+			controller.dualsenseCurOutputState.LedBlue = controller.disableLightbar ? 0 : lightbar->b;
 		}
 		else if (controller.deviceType == DUALSHOCK4) {
-			controller.dualshock4CurOutputState.LedRed = lightbar->r;
-			controller.dualshock4CurOutputState.LedGreen = lightbar->g;
-			controller.dualshock4CurOutputState.LedBlue = lightbar->b;
+			controller.dualshock4CurOutputState.LedRed = controller.disableLightbar ? 0 : lightbar->r;
+			controller.dualshock4CurOutputState.LedGreen = controller.disableLightbar ? 0 : lightbar->g;
+			controller.dualshock4CurOutputState.LedBlue = controller.disableLightbar ? 0 : lightbar->b;
 		}
 
 		return SCE_OK;
@@ -1829,6 +1841,38 @@ int scePadClose(int handle) {
 		controller.wasDisconnected = true;
 		controller.macAddress = "";
 		duaLibUtils::letGo(controller.handle, controller.deviceType, controller.connectionType);
+
+		return SCE_OK;
+	}
+	return SCE_PAD_ERROR_INVALID_HANDLE;
+}
+
+int scePadDisablePlayerLed(int handle) {
+	if (!g_initialized) return SCE_PAD_ERROR_NOT_INITIALIZED;
+
+	for (auto& controller : g_controllers) {
+		std::shared_lock guard(controller.lock);
+
+		if (controller.sceHandle != handle) continue;
+		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
+
+		controller.disablePlayerLed = true;
+
+		return SCE_OK;
+	}
+	return SCE_PAD_ERROR_INVALID_HANDLE;
+}
+
+int scePadDisableLightbar(int handle) {
+	if (!g_initialized) return SCE_PAD_ERROR_NOT_INITIALIZED;
+
+	for (auto& controller : g_controllers) {
+		std::shared_lock guard(controller.lock);
+
+		if (controller.sceHandle != handle) continue;
+		if (!controller.valid) return SCE_PAD_ERROR_DEVICE_NOT_CONNECTED;
+
+		controller.disableLightbar = true;
 
 		return SCE_OK;
 	}

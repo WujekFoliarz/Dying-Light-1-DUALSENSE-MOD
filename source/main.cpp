@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 #include "functions.hpp"
+#include <inipp.h>
+#include <fstream>
+
 #pragma comment(lib, "winmm.lib")
 
 // https://github.com/OneshotGH/CSGOSimple-master/blob/master/CSGOSimple/helpers/utils.cpp
@@ -66,6 +69,24 @@ const std::string gameDllName = "gamedll_x64_rwdi.dll";
 const std::string engineDllName = "engine_x64_rwdi.dll";
 std::vector<Hook> g_hooks;
 std::atomic<bool> g_threadRunning;
+
+bool readConfig() {
+	inipp::Ini<char> ini;
+	std::ifstream is("DyingLightScePad.ini");
+
+	if (!is) {
+		return false;
+	}
+
+	ini.parse(is);
+	inipp::get_value(ini.sections["Settings"], "PlayerLED", g_playerLed);
+	inipp::get_value(ini.sections["Settings"], "Lightbar", g_lightbar);
+	inipp::get_value(ini.sections["Settings"], "AdaptiveTriggers", g_adaptiveTriggers);
+	inipp::get_value(ini.sections["Settings"], "Speaker", g_speaker);
+	inipp::get_value(ini.sections["Settings"], "HapticFeedback", g_hapticFeedback);
+
+	return true;
+}
 
 void setupHooks() {
 	HMODULE sceHModule = GetModuleHandleA(libScePadDllName.c_str());
@@ -191,7 +212,7 @@ DWORD WINAPI handleTriggerBasedEffects(LPVOID lPtr) {
 				filesToPlay.push_back(getRandomString(currentEffect.effectsOnR2Held));
 
 			for (auto& file : filesToPlay) {
-				if (!file.empty()) {
+				if (!file.empty() && g_hapticFeedback) {
 					std::string fullPath = HAPTIC_PATH + file;
 				
 					{
@@ -230,6 +251,12 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 			//freopen_s(&fp, "CONIN$", "r", stdin);
 
 			DisableThreadLibraryCalls(hModule);
+
+			if (!readConfig()) {
+				MessageBox(NULL, "Failed to read DyingLightScePad.ini", "Error", MB_OK | MB_ICONERROR);
+				return 1;
+			}
+
 			setupHooks();
 
 			if (MH_Initialize() != MH_STATUS::MH_OK) {

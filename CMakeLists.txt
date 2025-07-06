@@ -26,9 +26,10 @@ target_include_directories(${PROJECT_NAME}
 add_subdirectory(thirdparty/minhook)
 add_subdirectory(thirdparty/duaLib)
 add_subdirectory(thirdparty/libScePad-Haptic-Extension)
+add_subdirectory(thirdparty/inipp)
 
 # Linking libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE minhook duaLib libScePadHapticExtension)
+target_link_libraries(${PROJECT_NAME} PRIVATE minhook duaLib libScePadHapticExtension inipp)
 
 # Copying DLLs to out folder
 # add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:duaLib> $<TARGET_FILE_DIR:${PROJECT_NAME}>)

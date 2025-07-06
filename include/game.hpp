@@ -163,7 +163,6 @@ AnimationType GetAnimationType(uint32_t anim) {
     if (anim == 1210) return AnimationType::HeavyBodyCollision;
     if (anim == 2716) return AnimationType::BuggyIgnition;
     if (anim == 2979) return AnimationType::OpenToolbox;
-    if (anim == 2833) return AnimationType::OpenSmallChest;
     if (anim == 17) return AnimationType::OpenLittleBasket;
     if (anim == 19) return AnimationType::OpenBigBasket;
     if (anim == 5537) return AnimationType::OpenWardrobe;

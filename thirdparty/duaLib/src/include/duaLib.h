@@ -414,6 +414,9 @@ DUALIB_API int scePadSetVibrationMode(int handle, int mode);
 DUALIB_API int scePadSetVolumeGain(int handle, s_ScePadVolumeGain* gainSettings);
 DUALIB_API int scePadIsSupportedAudioFunction(int handle);
 DUALIB_API int scePadClose(int handle);
+
+DUALIB_API int scePadDisablePlayerLed(int handle);
+DUALIB_API int scePadDisableLightbar(int handle);
 #ifdef __cplusplus
 }
 #endif

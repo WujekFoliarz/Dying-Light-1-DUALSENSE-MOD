@@ -25,6 +25,13 @@ private:
 };
 
 std::mutex g_lock;
+
+bool g_playerLed = true;
+bool g_lightbar = true;
+bool g_adaptiveTriggers = true;
+bool g_speaker = true;
+bool g_hapticFeedback = true;
+
 std::atomic<bool> g_useDefaultLightbar = true;
 std::atomic<bool> g_useDefaultRumble = false;
 std::atomic<bool> g_uvOn = false;
@@ -65,8 +72,15 @@ namespace libScePad_x64 {
 	scePadReadState_t scePadReadState_Org = nullptr;
 	__int64 __fastcall scePadReadState_Hook(int handle, s_ScePadData* state) {
 		scePadSetAudioOutPath(g_handle, SCE_PAD_AUDIO_PATH_ONLY_SPEAKER);
-		s_ScePadVolumeGain volume = { 100,0,0,100 };
+
+		s_ScePadVolumeGain volume = { g_speaker ? 100 : 0, 0, 0, 100 };
 		scePadSetVolumeGain(g_handle, &volume);
+
+		if (!g_playerLed)
+			scePadDisablePlayerLed(g_handle);
+
+		if (!g_lightbar)
+			scePadDisableLightbar(g_handle);
 
 		uint32_t result = scePadReadState(handle, state);
 
@@ -129,7 +143,7 @@ namespace gamedll_x64_rwdi {
 				g_currentForcedAnimation = animType;
 			}
 			auto triggerIt = g_triggerSettings.find(g_currentAnimation);
-			if (triggerIt != g_triggerSettings.end())
+			if (triggerIt != g_triggerSettings.end() && g_adaptiveTriggers)
 				scePadSetTriggerEffect(g_handle, &triggerIt->second);
 
 			// Play haptics  
@@ -138,7 +152,7 @@ namespace gamedll_x64_rwdi {
 				HapticEffect currentEffect = hapticIt->second;
 
 				std::string animationHapticEffect = getRandomString(currentEffect.effectsOnAnimation);
-				if (!animationHapticEffect.empty()) {
+				if (!animationHapticEffect.empty() && g_hapticFeedback) {
 					std::lock_guard<std::mutex> guard(g_lock);
 					std::string fullPath = HAPTIC_PATH + animationHapticEffect;
 					g_lastScePadAudioPlayResult = scePadAudioPlayWave(g_handle, fullPath.c_str(), true, currentEffect.loop);
@@ -146,10 +160,10 @@ namespace gamedll_x64_rwdi {
 			}
 
 			// Stop effects that shouldn't be playing          
-			if (g_currentAnimation != AnimationType::Zipline) {
+			if (g_currentAnimation != AnimationType::Zipline && g_hapticFeedback) {
 				scePadAudioStopWave(g_handle, HAPTIC_PATH "zip_line_loop_0.wav");
 			}
-			if (g_currentAnimation != AnimationType::GrabbedByBiterRight && g_currentAnimation != AnimationType::GrabbedByBiterLeft && g_currentAnimation != AnimationType::GrabbedByBiterFront && g_currentAnimation != AnimationType::BrokeOutBiterLeft) {
+			if (g_currentAnimation != AnimationType::GrabbedByBiterRight && g_currentAnimation != AnimationType::GrabbedByBiterLeft && g_currentAnimation != AnimationType::GrabbedByBiterFront && g_currentAnimation != AnimationType::BrokeOutBiterLeft && g_hapticFeedback) {
 				scePadAudioStopWave(g_handle, HAPTIC_PATH "zombie_walker_grab_bite_long_right_0.wav");
 				scePadAudioStopWave(g_handle, HAPTIC_PATH "zombie_walker_grab_bite_long_left_0.wav");
 			}
@@ -202,7 +216,7 @@ namespace gamedll_x64_rwdi {
 	typedef void(__fastcall* flashlightOn_t)(void* a1);
 	flashlightOn_t flashlightOn_Org = nullptr;
 	void __fastcall flashlightOn_Hook(void* a1) {
-		if (a1) {
+		if (a1 && g_hapticFeedback) {
 			scePadAudioPlayWave(g_handle, HAPTIC_PATH "torch_on_0.wav", false, false);
 		}
 		flashlightOn_Org(a1);
@@ -211,7 +225,7 @@ namespace gamedll_x64_rwdi {
 	typedef void(__fastcall* flashlightOff_t)(void* a1);
 	flashlightOff_t flashlightOff_Org = nullptr;
 	void __fastcall flashlightOff_Hook(void* a1) {
-		if (a1) {
+		if (a1 && g_hapticFeedback) {
 			scePadAudioPlayWave(g_handle, HAPTIC_PATH "torch_off_0.wav", false, false);
 		}
 		flashlightOff_Org(a1);
@@ -228,13 +242,13 @@ namespace gamedll_x64_rwdi {
 
 			if (unk == 0 && unkNew == 1) {
 				g_uvOn = true;
-				scePadAudioPlayWave(g_handle, HAPTIC_PATH "uv_flashlight_working_loop_0.wav", true, true);			
+				if (g_hapticFeedback) scePadAudioPlayWave(g_handle, HAPTIC_PATH "uv_flashlight_working_loop_0.wav", true, true);			
 				s_SceLightBar led = { 60, 0, 255 };
 				scePadSetLightBar(g_handle, &led);
 			}
 			else if ((unk == 1 && unkNew == 0) || (unk == 0 && unkNew == 0)) {
 				g_uvOn = false;
-				scePadAudioStopWave(g_handle, HAPTIC_PATH "uv_flashlight_working_loop_0.wav");
+				if (g_hapticFeedback) scePadAudioStopWave(g_handle, HAPTIC_PATH "uv_flashlight_working_loop_0.wav");
 			}
 		}
 	}
