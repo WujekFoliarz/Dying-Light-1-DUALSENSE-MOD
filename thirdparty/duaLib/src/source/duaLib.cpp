@@ -644,6 +644,8 @@ int readFunc() {
 					continue;
 				}
 				else if (res > 0) {
+					controller.failedReadCount = 0;
+
 					if (controller.dualshock4CurOutputState.LedRed != controller.dualshock4LastOutputState.LedRed ||
 					controller.dualshock4CurOutputState.LedGreen != controller.dualshock4LastOutputState.LedGreen ||
 					controller.dualshock4CurOutputState.LedBlue != controller.dualshock4LastOutputState.LedBlue ||
