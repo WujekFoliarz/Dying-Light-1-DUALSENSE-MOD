@@ -455,7 +455,17 @@ int readFunc() {
 #if defined(_WIN32) || defined(_WIN64)
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 	timeBeginPeriod(1);
+
+	DWORD_PTR affinityMask = 1;
+	SetThreadAffinityMask(GetCurrentThread(), affinityMask);
+
+	SetThreadIdealProcessor(GetCurrentThread(), 0);
+
+	HANDLE hTimer = CreateWaitableTimer(NULL, TRUE, NULL);
+	LARGE_INTEGER liDueTime;
 #endif
+
+	auto start = std::chrono::high_resolution_clock::now();
 
 	while (g_threadRunning) {
 		bool allInvalid = true;
@@ -470,10 +480,10 @@ int readFunc() {
 
 				int32_t res = -1;
 
-				if (isBt) 
-					res = hid_read_timeout(controller.handle, reinterpret_cast<unsigned char*>(&inputBt), sizeof(inputBt), 0);			
-				else 
-					res = hid_read_timeout(controller.handle, reinterpret_cast<unsigned char*>(&inputUsb), sizeof(inputUsb), 0);	
+				if (isBt)
+					res = hid_read_timeout(controller.handle, reinterpret_cast<unsigned char*>(&inputBt), sizeof(inputBt), 0);
+				else
+					res = hid_read_timeout(controller.handle, reinterpret_cast<unsigned char*>(&inputUsb), sizeof(inputUsb), 0);
 
 				dualsenseData::USBGetStateData inputData = isBt ? inputBt.Data.State.StateData : inputUsb.State;
 
@@ -512,6 +522,13 @@ int readFunc() {
 
 					bool oldStyle = ((controller.versionReport.HardwareInfo & 0x00FFFF00) < 0x00000400);
 					duaLibUtils::setPlayerLights(controller, oldStyle);
+
+					if (controller.dualsenseCurOutputState.lightBrightness != controller.dualsenseLastOutputState.lightBrightness || controller.wasDisconnected) {
+						controller.dualsenseCurOutputState.AllowLightBrightnessChange = true;
+					}
+					else {
+						controller.dualsenseCurOutputState.AllowLightBrightnessChange = false;
+					}
 
 					if ((controller.dualsenseCurOutputState.PlayerLight1 != controller.dualsenseLastOutputState.PlayerLight1 ||
 						controller.dualsenseCurOutputState.PlayerLight2 != controller.dualsenseLastOutputState.PlayerLight2 ||
@@ -734,11 +751,17 @@ int readFunc() {
 			}
 		}
 
-		std::this_thread::sleep_for(std::chrono::nanoseconds(300));
-
 		if (allInvalid) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
+
+	#if defined(_WIN32) || defined(_WIN64)
+		liDueTime.QuadPart = -1000LL;
+		SetWaitableTimer(hTimer, &liDueTime, 0, NULL, NULL, 0);
+		WaitForSingleObject(hTimer, INFINITE);
+	#else
+		std::this_thread::sleep_for(std::chrono::microseconds(100));
+	#endif
 	}
 	return 0;
 }
