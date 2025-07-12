@@ -130,9 +130,9 @@ void dataCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint
 ControllerAudio g_controllerAudio[4] = {};
 ma_context g_context;
 std::mutex g_contextLock;
-std::atomic<bool> g_initialized = false;
-std::atomic<bool> g_threadRunning = false;
-std::thread g_watchThread;
+static std::atomic<bool> g_initialized = false;
+static std::atomic<bool> g_threadRunning = false;
+static std::thread g_watchThread;
 
 void watchFunc() {
 	while (g_threadRunning) {

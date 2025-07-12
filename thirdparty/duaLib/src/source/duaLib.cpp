@@ -438,12 +438,12 @@ struct deviceList {
 
 deviceList g_deviceList = {};
 duaLibUtils::controller g_controllers[MAX_CONTROLLER_COUNT] = {};
-std::atomic<bool> g_threadRunning = false;
-std::atomic<bool> g_initialized = false;
-std::atomic<bool> g_particularMode = false;
-std::atomic<bool> g_allowBluetooth = false;
-std::thread g_readThread;
-std::thread g_watchThread;
+static std::atomic<bool> g_threadRunning = false;
+static std::atomic<bool> g_initialized = false;
+static std::atomic<bool> g_particularMode = false;
+static std::atomic<bool> g_allowBluetooth = false;
+static std::thread g_readThread;
+static std::thread g_watchThread;
 constexpr std::array<s_SceLightBar, 4> g_playerColors = { {
 	{  0, 0, 255 }, // Player 1 - Blue
 	{255,  0,   0 }, // Player 2 - Red
@@ -468,7 +468,7 @@ int readFunc() {
 				dualsenseData::ReportIn01USB  inputUsb = {};
 				dualsenseData::ReportIn31  inputBt = {};
 
-				uint32_t res = -1;
+				int32_t res = -1;
 
 				if (isBt) 
 					res = hid_read_timeout(controller.handle, reinterpret_cast<unsigned char*>(&inputBt), sizeof(inputBt), 0);			
@@ -628,7 +628,7 @@ int readFunc() {
 				dualshock4Data::ReportIn01USB inputUsb = {};
 				dualshock4Data::ReportIn01BT inputBt = {};
 
-				uint32_t res = -1;
+				int32_t res = -1;
 
 				if (isBt)
 					res = hid_read_timeout(controller.handle, reinterpret_cast<unsigned char*>(&inputBt), sizeof(inputBt), 0);

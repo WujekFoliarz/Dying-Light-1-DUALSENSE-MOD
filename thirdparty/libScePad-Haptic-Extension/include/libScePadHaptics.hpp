@@ -19,10 +19,10 @@
 extern "C" {
 #endif
 
-	SCEPADHAPTICS_API	int scePadAudioInit();
-	SCEPADHAPTICS_API	int scePadAudioOpen(int handle);
-	SCEPADHAPTICS_API	int scePadAudioPlayWave(int handle, const char* path, bool dontPlayIfAlreadyPlaying, bool loop);
-	SCEPADHAPTICS_API	int scePadAudioStopWave(int handle, const char* path);
+	int scePadAudioInit();
+	int scePadAudioOpen(int handle);
+	int scePadAudioPlayWave(int handle, const char* path, bool dontPlayIfAlreadyPlaying, bool loop);
+	int scePadAudioStopWave(int handle, const char* path);
 
 #ifdef __cplusplus
 }

@@ -384,39 +384,39 @@ extern "C" {
 #endif
 
 // Use scePadInit3() if you want to allow for bluetooth connections
-DUALIB_API int scePadInit();
-DUALIB_API int scePadInit3(s_ScePadInitParam* param);
-DUALIB_API int scePadTerminate();
-DUALIB_API int scePadOpen(int userID, int unk1, int unk2);
-DUALIB_API int scePadSetParticularMode(bool mode);
-DUALIB_API int scePadGetParticularMode();
-DUALIB_API int scePadReadState(int handle, s_ScePadData* data);
-DUALIB_API int scePadGetContainerIdInformation(int handle, s_ScePadContainerIdInfo* containerIdInfo);
-DUALIB_API int scePadSetLightBar(int handle, s_SceLightBar* lightbar);
-DUALIB_API int scePadGetHandle(int userID, int unk1, int unk2);
-DUALIB_API int scePadResetLightBar(int handle);
-DUALIB_API int scePadSetTriggerEffect(int handle, ScePadTriggerEffectParam* triggerEffect);
-DUALIB_API int scePadGetControllerBusType(int handle, int* busType);
-DUALIB_API int scePadGetControllerInformation(int handle, s_ScePadInfo* info);
-DUALIB_API int scePadGetControllerType(int handle, s_SceControllerType* controllerType);
-DUALIB_API int scePadGetJackState(int handle, int* state);
-DUALIB_API int scePadGetTriggerEffectState(int handle, int state[2]);
-DUALIB_API int scePadIsControllerUpdateRequired(int handle);
+ int scePadInit();
+ int scePadInit3(s_ScePadInitParam* param);
+ int scePadTerminate();
+ int scePadOpen(int userID, int unk1, int unk2);
+ int scePadSetParticularMode(bool mode);
+ int scePadGetParticularMode();
+ int scePadReadState(int handle, s_ScePadData* data);
+ int scePadGetContainerIdInformation(int handle, s_ScePadContainerIdInfo* containerIdInfo);
+ int scePadSetLightBar(int handle, s_SceLightBar* lightbar);
+ int scePadGetHandle(int userID, int unk1, int unk2);
+ int scePadResetLightBar(int handle);
+ int scePadSetTriggerEffect(int handle, ScePadTriggerEffectParam* triggerEffect);
+ int scePadGetControllerBusType(int handle, int* busType);
+ int scePadGetControllerInformation(int handle, s_ScePadInfo* info);
+ int scePadGetControllerType(int handle, s_SceControllerType* controllerType);
+ int scePadGetJackState(int handle, int* state);
+ int scePadGetTriggerEffectState(int handle, int state[2]);
+ int scePadIsControllerUpdateRequired(int handle);
 /// Don't use this. Use scePadReadState instead
-DUALIB_API int scePadRead(int handle, s_ScePadData* data, int count);
-DUALIB_API int scePadResetOrientation(int handle);
-DUALIB_API int scePadSetAngularVelocityDeadbandState(int handle, bool state);
-DUALIB_API int scePadSetAudioOutPath(int handle, int path);
-DUALIB_API int scePadSetMotionSensorState(int handle, bool state);
-DUALIB_API int scePadSetTiltCorrectionState(int handle, bool state);
-DUALIB_API int scePadSetVibration(int handle, s_ScePadVibrationParam* vibration);
-DUALIB_API int scePadSetVibrationMode(int handle, int mode);
-DUALIB_API int scePadSetVolumeGain(int handle, s_ScePadVolumeGain* gainSettings);
-DUALIB_API int scePadIsSupportedAudioFunction(int handle);
-DUALIB_API int scePadClose(int handle);
+ int scePadRead(int handle, s_ScePadData* data, int count);
+ int scePadResetOrientation(int handle);
+ int scePadSetAngularVelocityDeadbandState(int handle, bool state);
+ int scePadSetAudioOutPath(int handle, int path);
+ int scePadSetMotionSensorState(int handle, bool state);
+ int scePadSetTiltCorrectionState(int handle, bool state);
+ int scePadSetVibration(int handle, s_ScePadVibrationParam* vibration);
+ int scePadSetVibrationMode(int handle, int mode);
+ int scePadSetVolumeGain(int handle, s_ScePadVolumeGain* gainSettings);
+ int scePadIsSupportedAudioFunction(int handle);
+ int scePadClose(int handle);
 
-DUALIB_API int scePadDisablePlayerLed(int handle);
-DUALIB_API int scePadDisableLightbar(int handle);
+ int scePadDisablePlayerLed(int handle);
+ int scePadDisableLightbar(int handle);
 #ifdef __cplusplus
 }
 #endif

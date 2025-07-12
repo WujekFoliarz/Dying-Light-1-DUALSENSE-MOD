@@ -20,7 +20,7 @@ if(COMPILE_TO_EXE)
 add_executable(${PROJECT_NAME} ${MY_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC COMPILE_TO_EXE=1)
 else()
-add_library(${PROJECT_NAME} SHARED ${MY_SOURCES})
+add_library(${PROJECT_NAME} STATIC ${MY_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PUBLIC COMPILE_TO_EXE=0)
 endif()
 
