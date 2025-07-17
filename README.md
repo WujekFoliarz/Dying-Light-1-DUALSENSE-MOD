@@ -32,3 +32,7 @@ It adds support for Sony controllers such as Dualsense and Dualshock 4 and utili
 # Do I need any external programs to run it?
 
 No, you don't need any programs
+
+# My game is quickly switching between Xbox and PS buttons when I touch the controller!
+
+You have left Steam Input on. Disable it
