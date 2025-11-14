@@ -71,7 +71,7 @@ namespace libScePad_x64 {
 	typedef __int64(__fastcall* scePadReadState_t)(int handle, s_ScePadData* state);
 	scePadReadState_t scePadReadState_Org = nullptr;
 	__int64 __fastcall scePadReadState_Hook(int handle, s_ScePadData* state) {
-		scePadSetAudioOutPath(g_handle, SCE_PAD_AUDIO_PATH_ONLY_SPEAKER);
+		scePadSetAudioOutPath(g_handle, SCE_PAD_AUDIO_PATH_MONO_LEFT_HEADSET_AND_SPEAKER);
 
 		s_ScePadVolumeGain volume = { g_speaker ? 100 : 0, 0, 0, 100 };
 		scePadSetVolumeGain(g_handle, &volume);
