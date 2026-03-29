@@ -7,7 +7,14 @@
 2. Put all files from Release.zip in the game folder (exactly the same place where DyingLightGame.exe is)
    
 3. Disable steam input (skip if you're not on steam)
-   
+
+### Additional Linux/SteamOS steps
+
+1. Add ```WINEDLLOVERRIDES="version=n,b" %command%``` to the game's launch options
+2. If game crashes on startup - install protontricks and paste ```protontricks 239140 vcrun2022``` in terminal
+3. If haptics do not work:
+ - Use proton-cachyos or any other proton branch with xzn's dualsense patches
+ - If you're on Arch-based distro do what [this comment](https://github.com/ValveSoftware/Proton/issues/5900#issuecomment-3696038585) says 
 
 # How to disable Steam Input?
 
