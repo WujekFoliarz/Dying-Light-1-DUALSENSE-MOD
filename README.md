@@ -15,6 +15,7 @@
 3. If haptics do not work:
  - Use proton-cachyos or any other proton branch with xzn's dualsense patches
  - If you're on Arch-based distro do what [this comment](https://github.com/ValveSoftware/Proton/issues/5900#issuecomment-3696038585) says 
+ - Make sure the dualsense audio device is set as a 4 channel surround sound
 
 # How to disable Steam Input?
 
